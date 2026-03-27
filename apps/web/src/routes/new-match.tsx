@@ -363,6 +363,20 @@ function Step2Format({ format, rules, onFormatChange, onRulesChange }: Step2Prop
         })}
       </div>
 
+      {/* Players per side — visible for all formats */}
+      <Card>
+        <CardContent className="py-4 px-4">
+          <NumberRule
+            label="Players per side"
+            sub={`${rules.maxWickets} wickets · up to ${rules.maxWickets + 1} batters per team`}
+            value={rules.maxWickets + 1}
+            min={2}
+            max={15}
+            onChange={(v) => patch({ maxWickets: v - 1 })}
+          />
+        </CardContent>
+      </Card>
+
       {/* Custom rules */}
       {format === "CUSTOM" && (
         <Card>
@@ -405,14 +419,6 @@ function Step2Format({ format, rules, onFormatChange, onRulesChange }: Step2Prop
               min={1}
               max={10}
               onChange={(v) => patch({ ballsPerOver: v })}
-            />
-            <NumberRule
-              label="Max wickets"
-              sub={`Team size will be ${rules.maxWickets + 1} players`}
-              value={rules.maxWickets}
-              min={1}
-              max={20}
-              onChange={(v) => patch({ maxWickets: v })}
             />
           </CardContent>
         </Card>
@@ -780,24 +786,28 @@ function Step4PlayingXI({
       </div>
 
       {/* Inline add player */}
-      <div className="px-4">
+      <div className="px-4 space-y-1.5">
+        <Label className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+          <Plus className="size-3" />
+          Add New Player
+        </Label>
         <form
           onSubmit={(e) => { e.preventDefault(); handleAddPlayer() }}
           className="flex gap-2"
         >
           <Input
-            placeholder="Add player name…"
+            placeholder="Type player name, then tap Add →"
             value={newPlayerName}
             onChange={(e) => setNewPlayerName(e.target.value)}
-            className="flex-1 h-9 text-sm"
+            autoFocus
+            className="flex-1 h-10 text-sm"
           />
           <Button
             type="submit"
             size="sm"
-            variant="outline"
             disabled={!newPlayerName.trim() || addingPlayer}
             onClick={handleAddPlayer}
-            className="h-9 px-3 shrink-0"
+            className="h-10 px-4 shrink-0"
           >
             <Plus className="size-3.5 mr-1" />
             Add
@@ -814,12 +824,12 @@ function Step4PlayingXI({
             ))}
           </div>
         ) : displayPlayers.length === 0 ? (
-          <Card className="border-dashed">
+          <Card className="border-dashed border-primary/30 bg-primary/5">
             <CardContent className="py-6 text-center">
-              <Users className="size-7 text-muted-foreground/40 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">No players yet</p>
+              <Users className="size-7 text-primary/40 mx-auto mb-2" />
+              <p className="text-sm font-medium">No players yet</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Type a name above and tap Add
+                Type a name in the box above, then tap <strong>Add</strong>
               </p>
             </CardContent>
           </Card>
