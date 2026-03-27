@@ -369,3 +369,67 @@ export async function seedDemoMatch(): Promise<string | null> {
 
   return matchId
 }
+
+// ─── FIFA Demo Data ───────────────────────────────────────────────────────────
+
+import type { FifaPlayer, FifaMatch } from "@/types/fifa"
+
+/**
+ * Seeds 5 FIFA players + 20 matches of demo data.
+ * Returns true if data was inserted, false if already present.
+ */
+export async function seedDemoFifaData(): Promise<boolean> {
+  const existing = await db.fifaPlayers.count()
+  if (existing > 0) return false
+
+  const p0 = uid(), p1 = uid(), p2 = uid(), p3 = uid(), p4 = uid()
+
+  const players: FifaPlayer[] = [
+    { id: p0, name: "Kareem",  colorHex: "#3b82f6", createdAt: new Date("2025-10-01") },
+    { id: p1, name: "Marcus",  colorHex: "#ef4444", createdAt: new Date("2025-10-01") },
+    { id: p2, name: "Andre",   colorHex: "#22c55e", createdAt: new Date("2025-10-01") },
+    { id: p3, name: "Rohan",   colorHex: "#a855f7", createdAt: new Date("2025-10-01") },
+    { id: p4, name: "Sanjay",  colorHex: "#f59e0b", createdAt: new Date("2025-10-01") },
+  ]
+
+  // [p1Id, p2Id, p1Score, p2Score, date]
+  type MatchRow = [string, string, number, number, string]
+  const rows: MatchRow[] = [
+    [p0, p1, 3, 1, "2025-11-01"],
+    [p2, p3, 2, 2, "2025-11-03"],
+    [p1, p2, 4, 2, "2025-11-05"],
+    [p0, p3, 5, 3, "2025-11-08"],
+    [p4, p1, 2, 3, "2025-11-10"],
+    [p0, p2, 1, 1, "2025-11-12"],
+    [p3, p4, 4, 1, "2025-11-15"],
+    [p1, p4, 3, 2, "2025-11-17"],
+    [p2, p0, 1, 4, "2025-11-20"],
+    [p4, p3, 2, 2, "2025-11-22"],
+    [p0, p4, 6, 2, "2025-11-25"],
+    [p1, p3, 2, 3, "2025-11-28"],
+    [p2, p4, 3, 1, "2025-12-01"],
+    [p0, p1, 2, 4, "2025-12-05"],
+    [p3, p2, 3, 3, "2025-12-08"],
+    [p4, p0, 1, 3, "2025-12-12"],
+    [p1, p2, 2, 2, "2025-12-15"],
+    [p3, p0, 1, 2, "2025-12-18"],
+    [p4, p2, 4, 3, "2025-12-22"],
+    [p0, p3, 3, 1, "2025-12-25"],
+  ]
+
+  const matches: FifaMatch[] = rows.map(([player1Id, player2Id, player1Score, player2Score, date]) => ({
+    id: uid(),
+    player1Id,
+    player2Id,
+    player1Score,
+    player2Score,
+    date: new Date(date),
+  }))
+
+  await db.transaction("rw", [db.fifaPlayers, db.fifaMatches], async () => {
+    await db.fifaPlayers.bulkAdd(players)
+    await db.fifaMatches.bulkAdd(matches)
+  })
+
+  return true
+}

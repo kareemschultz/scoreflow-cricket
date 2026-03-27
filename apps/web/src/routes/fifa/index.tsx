@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { format } from "date-fns"
-import { Plus, Trophy } from "lucide-react"
+import { Plus, Trophy, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
+import { useState } from "react"
 import { db } from "@/db/index"
 import { computeFifaPlayerStats } from "@/lib/fifa-stats"
+import { seedDemoFifaData } from "@/lib/demo-seed"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
@@ -47,7 +49,7 @@ function FormPill({ result }: { result: "W" | "D" | "L" }) {
   )
 }
 
-function LeaderboardTable() {
+function LeaderboardTable({ onLoadDemo, loadingDemo }: { onLoadDemo: () => void; loadingDemo: boolean }) {
   const players = useLiveQuery(() => db.fifaPlayers.orderBy("createdAt").toArray())
   const matches = useLiveQuery(() => db.fifaMatches.toArray())
 
@@ -64,9 +66,13 @@ function LeaderboardTable() {
   if (players.length === 0 || matches.length === 0) {
     return (
       <Card>
-        <CardContent className="py-8 text-center">
-          <Trophy className="size-8 text-muted-foreground mx-auto mb-3" />
+        <CardContent className="py-8 text-center space-y-3">
+          <Trophy className="size-8 text-muted-foreground mx-auto" />
           <p className="text-sm text-muted-foreground">Add players and record matches to see the leaderboard</p>
+          <Button variant="outline" size="sm" onClick={onLoadDemo} disabled={loadingDemo} className="gap-2">
+            <Sparkles className="size-3.5" />
+            {loadingDemo ? "Loading…" : "Load Demo Data"}
+          </Button>
         </CardContent>
       </Card>
     )
@@ -196,6 +202,16 @@ function RecentMatches() {
 
 function FifaHomePage() {
   const navigate = useNavigate()
+  const [loadingDemo, setLoadingDemo] = useState(false)
+
+  async function handleLoadDemo() {
+    setLoadingDemo(true)
+    try {
+      await seedDemoFifaData()
+    } finally {
+      setLoadingDemo(false)
+    }
+  }
 
   return (
     <div className="min-h-full bg-background relative overflow-hidden">
@@ -277,7 +293,7 @@ function FifaHomePage() {
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Leaderboard</h2>
           <Card>
             <CardContent className="px-0 pb-2 pt-0">
-              <LeaderboardTable />
+              <LeaderboardTable onLoadDemo={handleLoadDemo} loadingDemo={loadingDemo} />
             </CardContent>
           </Card>
         </section>
