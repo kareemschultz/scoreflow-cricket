@@ -796,6 +796,7 @@ function Step4PlayingXI({
             size="sm"
             variant="outline"
             disabled={!newPlayerName.trim() || addingPlayer}
+            onClick={handleAddPlayer}
             className="h-9 px-3 shrink-0"
           >
             <Plus className="size-3.5 mr-1" />
