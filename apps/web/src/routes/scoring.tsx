@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { RotateCcw } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
 import { useScoringStore } from "@/stores/scoring"
 import {
@@ -99,6 +100,7 @@ function ScoringPage() {
   const [nbPickerOpen, setNbPickerOpen] = useState(false)
   const [byePickerOpen, setByePickerOpen] = useState(false)
   const [lbPickerOpen, setLbPickerOpen] = useState(false)
+  const [scoreFlash, setScoreFlash] = useState<"boundary" | "six" | "wicket" | null>(null)
 
   // Redirect if no live match
   useEffect(() => {
@@ -271,6 +273,8 @@ function ScoringPage() {
         })
       )
       await recordBall(ball)
+      if (runs === 4) setScoreFlash("boundary")
+      else if (runs === 6) setScoreFlash("six")
       checkPostBall()
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -373,6 +377,7 @@ function ScoringPage() {
       })
     )
     await recordBall(ball)
+    setScoreFlash("wicket")
 
     // After recording, check if innings is done
     const latestState = useScoringStore.getState()
@@ -632,6 +637,26 @@ function ScoringPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background select-none">
 
+      {/* ── Score flash overlay ── */}
+      <AnimatePresence>
+        {scoreFlash && (
+          <motion.div
+            key={scoreFlash}
+            className={cn(
+              "fixed inset-0 z-[100] pointer-events-none",
+              scoreFlash === "boundary" && "bg-emerald-500/20",
+              scoreFlash === "six" && "bg-amber-500/20",
+              scoreFlash === "wicket" && "bg-red-500/20"
+            )}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onAnimationComplete={() => setTimeout(() => setScoreFlash(null), 100)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* ── Score header ── */}
       <ScoreHeader
         battingTeamName={battingTeamName}
@@ -704,10 +729,11 @@ function ScoringPage() {
         {/* Run buttons 0–3 */}
         <div className="grid grid-cols-4 gap-1.5">
           {[0, 1, 2, 3].map((r) => (
-            <button
+            <motion.button
               key={r}
               disabled={!canScore}
               onClick={() => handleRun(r)}
+              whileTap={{ scale: 0.92 }}
               className={cn(
                 "h-14 rounded-xl border font-bold text-lg transition-all active:scale-95",
                 "bg-muted/40 border-border text-foreground",
@@ -715,15 +741,16 @@ function ScoringPage() {
               )}
             >
               {r}
-            </button>
+            </motion.button>
           ))}
         </div>
 
         {/* 4 and 6 */}
         <div className="grid grid-cols-2 gap-1.5">
-          <button
+          <motion.button
             disabled={!canScore}
             onClick={() => handleRun(4)}
+            whileTap={{ scale: 0.92 }}
             className={cn(
               "h-16 rounded-xl border font-bold text-2xl transition-all active:scale-95",
               "bg-cricket-btn-boundary-bg border-cricket-boundary/60 text-cricket-btn-boundary-fg",
@@ -732,10 +759,11 @@ function ScoringPage() {
             )}
           >
             4
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             disabled={!canScore}
             onClick={() => handleRun(6)}
+            whileTap={{ scale: 0.92 }}
             className={cn(
               "h-16 rounded-xl border font-bold text-2xl transition-all active:scale-95",
               "bg-cricket-btn-six-bg border-cricket-six/60 text-cricket-btn-six-fg",
@@ -744,7 +772,7 @@ function ScoringPage() {
             )}
           >
             6
-          </button>
+          </motion.button>
         </div>
 
         {/* Extras row */}
@@ -903,6 +931,7 @@ function ScoringPage() {
       {/* New batsman sheet */}
       <NewBatsmanSheet
         open={showNewBatsmanSheet}
+        onClose={() => setShowNewBatsmanSheet(false)}
         availableBatsmen={availableBatsmen}
         onSelect={handleNewBatsmanSelect}
       />

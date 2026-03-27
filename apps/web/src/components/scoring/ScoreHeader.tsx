@@ -1,3 +1,4 @@
+import { motion } from "framer-motion"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -37,9 +38,15 @@ export function ScoreHeader({
             <span className="text-xs font-medium text-muted-foreground truncate max-w-[120px]">
               {battingTeamName}
             </span>
-            <span className="text-2xl font-bold tracking-tight tabular-nums leading-none">
+            <motion.span
+              key={score}
+              className="text-2xl font-bold tracking-tight tabular-nums leading-none"
+              initial={{ scale: 1.2, opacity: 0.7 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            >
               {score}
-            </span>
+            </motion.span>
             <span className="text-sm text-muted-foreground font-medium">
               {overs}
             </span>

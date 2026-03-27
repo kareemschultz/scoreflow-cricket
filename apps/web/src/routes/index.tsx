@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { formatDistanceToNow, format } from "date-fns"
@@ -7,6 +8,7 @@ import type { Match } from "@/types/cricket"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { seedDemoMatch } from "@/lib/demo-seed"
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -145,6 +147,16 @@ function RecentMatchCard({ match }: { match: Match }) {
 
 function HomePage() {
   const navigate = useNavigate()
+  const [loadingDemo, setLoadingDemo] = useState(false)
+
+  async function handleLoadDemo() {
+    setLoadingDemo(true)
+    try {
+      await seedDemoMatch()
+    } finally {
+      setLoadingDemo(false)
+    }
+  }
 
   const liveMatch = useLiveQuery(() =>
     db.matches.where("status").equals("live").first()
@@ -305,14 +317,23 @@ function HomePage() {
             </div>
           ) : recentMatches.length === 0 ? (
             <Card>
-              <CardContent className="py-8 text-center">
+              <CardContent className="py-8 text-center space-y-3">
                 <Users className="size-8 text-muted-foreground mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">
                   No matches yet
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground">
                   Start a new match to see results here
                 </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 border-dashed border-primary/40 text-primary text-xs"
+                  onClick={handleLoadDemo}
+                  disabled={loadingDemo}
+                >
+                  {loadingDemo ? "Loading…" : "Load Demo Match"}
+                </Button>
               </CardContent>
             </Card>
           ) : (

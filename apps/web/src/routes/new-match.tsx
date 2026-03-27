@@ -1144,7 +1144,7 @@ function NewMatchPage() {
 
       {/* Step content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="pb-28">
+        <div className="pb-32">
           <StepHeader
             title={STEP_TITLES[step - 1]}
             subtitle={STEP_SUBTITLES[step - 1]}
@@ -1227,7 +1227,7 @@ function NewMatchPage() {
       </div>
 
       {/* Footer nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+      <div className="fixed bottom-[52px] left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3">
         <div className="flex gap-3">
           {step > 1 && (
             <Button
