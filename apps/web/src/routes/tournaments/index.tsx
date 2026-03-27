@@ -1,3 +1,4 @@
+import { motion } from "framer-motion"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { useState } from "react"
@@ -196,7 +197,36 @@ function TournamentsPage() {
   })
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — tournament bracket glow */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-20 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-amber-500/7"
+          animate={{ scale: [1, 1.15, 1], opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/3 -left-16 w-48 h-48 rounded-full bg-violet-500/5"
+          animate={{ scale: [1, 1.1, 1], x: [0, 10, 0] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+        <motion.div
+          className="absolute bottom-20 -right-16 w-44 h-44 rounded-full bg-emerald-500/5"
+          animate={{ scale: [1, 1.12, 1], y: [0, -12, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        {/* Bracket-like intersecting lines */}
+        <motion.div
+          className="absolute top-[20%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/10 to-transparent"
+          animate={{ opacity: [0.3, 0.7, 0.3] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-[45%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/8 to-transparent"
+          animate={{ opacity: [0.2, 0.5, 0.2] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        />
+      </div>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">

@@ -288,7 +288,41 @@ function RecordsPage() {
   const isEmpty = matches.length === 0
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — trophy room shimmer */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-24 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full bg-amber-500/8"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/3 -left-20 w-52 h-52 rounded-full bg-yellow-500/5"
+          animate={{ scale: [1, 1.1, 1], x: [0, 12, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+        <motion.div
+          className="absolute bottom-16 -right-16 w-48 h-48 rounded-full bg-emerald-500/5"
+          animate={{ scale: [1, 1.12, 1], y: [0, -8, 0] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        {/* Sparkling stars */}
+        {[
+          { top: "15%", left: "12%", delay: 0 },
+          { top: "35%", left: "85%", delay: 1.2 },
+          { top: "60%", left: "20%", delay: 2.4 },
+          { top: "75%", left: "70%", delay: 0.8 },
+          { top: "25%", left: "55%", delay: 3.1 },
+        ].map((s, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 rounded-full bg-amber-400/50"
+            style={{ top: s.top, left: s.left }}
+            animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: s.delay }}
+          />
+        ))}
+      </div>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">

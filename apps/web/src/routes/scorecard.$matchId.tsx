@@ -1,3 +1,4 @@
+import { motion } from "framer-motion"
 import { createFileRoute, useParams } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { format } from "date-fns"
@@ -343,7 +344,35 @@ function ScorecardPage() {
   )
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — scorecard / match data */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-primary/5"
+          animate={{ scale: [1, 1.1, 1], x: [0, -6, 0], y: [0, 10, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/2 -left-20 w-48 h-48 rounded-full bg-blue-500/4"
+          animate={{ scale: [1, 1.08, 1], y: [0, -8, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+        />
+        <motion.div
+          className="absolute bottom-20 right-4 w-36 h-36 rounded-full bg-emerald-500/4"
+          animate={{ scale: [1, 1.12, 1], x: [0, -4, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        />
+        {/* Subtle horizontal stat lines */}
+        {[20, 38, 56, 74].map((pct, i) => (
+          <motion.div
+            key={i}
+            className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/6 to-transparent"
+            style={{ top: `${pct}%` }}
+            animate={{ opacity: [0.2, 0.5, 0.2] }}
+            transition={{ duration: 5 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.8 }}
+          />
+        ))}
+      </div>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">

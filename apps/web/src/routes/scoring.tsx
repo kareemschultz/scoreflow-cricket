@@ -661,7 +661,33 @@ function ScoringPage() {
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-background select-none">
+    <div className="flex flex-col h-full overflow-hidden bg-background select-none relative">
+      {/* Animated background — live match field */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        {/* Outfield boundary circle */}
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[120vw] rounded-full border border-emerald-500/6"
+          animate={{ scale: [1, 1.03, 1], opacity: [0.5, 0.8, 0.5] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Inner 30-yard circle */}
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full border border-emerald-500/5"
+          animate={{ scale: [1, 1.02, 1], opacity: [0.4, 0.7, 0.4] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        {/* Red ball glow */}
+        <motion.div
+          className="absolute top-8 right-8 w-16 h-16 rounded-full bg-red-500/8"
+          animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-32 left-4 w-24 h-24 rounded-full bg-emerald-500/5"
+          animate={{ scale: [1, 1.15, 1], x: [0, 6, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+      </div>
 
       {/* ── Score flash overlay ── */}
       <AnimatePresence>

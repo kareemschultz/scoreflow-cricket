@@ -142,7 +142,36 @@ function HistoryPage() {
         )
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — drifting archive orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-indigo-500/5"
+          animate={{ scale: [1, 1.1, 1], x: [0, 10, 0], y: [0, 14, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/2 -right-20 w-56 h-56 rounded-full bg-purple-500/5"
+          animate={{ scale: [1, 1.08, 1], x: [0, -8, 0], y: [0, -12, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+        />
+        <motion.div
+          className="absolute bottom-24 left-4 w-36 h-36 rounded-full bg-violet-500/4"
+          animate={{ scale: [1, 1.15, 1], y: [0, -10, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        />
+        {/* Fading timeline lines */}
+        <motion.div
+          className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-indigo-500/8 to-transparent"
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-purple-500/6 to-transparent"
+          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+      </div>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3 space-y-3">
         <div className="flex items-center gap-2">

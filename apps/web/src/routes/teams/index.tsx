@@ -405,7 +405,30 @@ function TeamsPage() {
   }
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — multiple team colors */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-16 -left-16 w-56 h-56 rounded-full bg-blue-500/6"
+          animate={{ scale: [1, 1.12, 1], x: [0, 10, 0], y: [0, 8, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/4 -right-12 w-44 h-44 rounded-full bg-emerald-500/5"
+          animate={{ scale: [1, 1.1, 1], x: [0, -8, 0] }}
+          transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+        <motion.div
+          className="absolute top-2/3 left-8 w-32 h-32 rounded-full bg-orange-500/5"
+          animate={{ scale: [1, 1.15, 1], y: [0, -10, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        <motion.div
+          className="absolute bottom-12 -right-8 w-40 h-40 rounded-full bg-violet-500/5"
+          animate={{ scale: [1, 1.08, 1], x: [0, -6, 0], y: [0, -6, 0] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 3.5 }}
+        />
+      </div>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">

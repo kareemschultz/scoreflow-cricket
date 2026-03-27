@@ -1,3 +1,4 @@
+import { motion } from "framer-motion"
 import { createFileRoute } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { useState, useEffect } from "react"
@@ -167,7 +168,35 @@ function SettingsPage() {
   const defaultRules = DEFAULT_RULES[settings.defaultFormat]
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — tech grid / cog vibes */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-10 -right-10 w-48 h-48 rounded-full border border-border/20"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div
+          className="absolute -top-6 -right-6 w-36 h-36 rounded-full border border-border/15"
+          animate={{ rotate: -360 }}
+          transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div
+          className="absolute bottom-32 -left-12 w-40 h-40 rounded-full border border-border/15"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div
+          className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-slate-500/4"
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-8 left-8 w-28 h-28 rounded-full bg-violet-500/4"
+          animate={{ scale: [1, 1.15, 1], x: [0, 4, 0] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+      </div>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">

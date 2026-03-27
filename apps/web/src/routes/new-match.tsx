@@ -1,3 +1,4 @@
+import { motion } from "framer-motion"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { useState, useCallback, useEffect } from "react"
@@ -1333,7 +1334,31 @@ function NewMatchPage() {
   ]
 
   return (
-    <div className="min-h-full bg-background flex flex-col">
+    <div className="min-h-full bg-background flex flex-col relative overflow-hidden">
+      {/* Animated background — fresh match, pitch green */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-emerald-500/6"
+          animate={{ scale: [1, 1.12, 1], x: [0, -8, 0], y: [0, 10, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/3 -left-20 w-52 h-52 rounded-full bg-primary/5"
+          animate={{ scale: [1, 1.1, 1], x: [0, 10, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+        <motion.div
+          className="absolute bottom-16 right-8 w-36 h-36 rounded-full bg-lime-500/5"
+          animate={{ scale: [1, 1.18, 1], y: [0, -8, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        {/* Pitch centre circle suggestion */}
+        <motion.div
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full border border-emerald-500/8"
+          animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.9, 0.5] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </div>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="flex items-center gap-2 px-4 py-3">

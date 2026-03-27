@@ -329,7 +329,41 @@ function StatsPage() {
   }
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — podium ascending orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-amber-500/5"
+          animate={{ scale: [1, 1.2, 1], y: [0, -20, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-20 -left-16 w-44 h-44 rounded-full bg-blue-500/5"
+          animate={{ scale: [1, 1.1, 1], x: [0, 8, 0], y: [0, -8, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        />
+        <motion.div
+          className="absolute top-1/3 -right-12 w-36 h-36 rounded-full bg-emerald-500/5"
+          animate={{ scale: [1, 1.12, 1], x: [0, -6, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+        />
+        {/* Rising rank bars */}
+        {[
+          { left: "8%", height: "30%", color: "bg-amber-500/8", delay: 0 },
+          { left: "22%", height: "50%", color: "bg-blue-500/6", delay: 0.5 },
+          { left: "36%", height: "40%", color: "bg-emerald-500/6", delay: 1 },
+          { left: "72%", height: "60%", color: "bg-amber-500/6", delay: 0.3 },
+          { left: "86%", height: "35%", color: "bg-violet-500/6", delay: 0.8 },
+        ].map((b, i) => (
+          <motion.div
+            key={i}
+            className={`absolute bottom-0 w-1.5 rounded-t-full ${b.color}`}
+            style={{ left: b.left, height: b.height }}
+            animate={{ scaleY: [0.6, 1, 0.6], opacity: [0.4, 0.7, 0.4] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: b.delay }}
+          />
+        ))}
+      </div>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3 space-y-3">
         <div className="flex items-center gap-2">
