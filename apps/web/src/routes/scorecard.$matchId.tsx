@@ -1,14 +1,13 @@
 import { motion } from "framer-motion"
-import { createFileRoute, useParams } from "@tanstack/react-router"
+import { createFileRoute, useParams, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { format } from "date-fns"
 import {
-  ChevronDown,
-  ChevronUp,
   Share2,
   Copy,
   Check,
   ArrowLeft,
+  BarChart2,
 } from "lucide-react"
 import { useRef, useState } from "react"
 import html2canvas from "html2canvas"
@@ -19,9 +18,6 @@ import { BattingCard } from "@/components/scorecard/BattingCard"
 import { BowlingCard } from "@/components/scorecard/BowlingCard"
 import { FallOfWickets } from "@/components/scorecard/FallOfWickets"
 import { PartnershipChart } from "@/components/scorecard/PartnershipChart"
-import { ManhattanChart } from "@/components/charts/ManhattanChart"
-import { WormGraph } from "@/components/charts/WormGraph"
-import { RunRateGraph } from "@/components/charts/RunRateGraph"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -43,21 +39,6 @@ function inningsLabel(index: number, total: number): string {
 
 function oversStr(innings: Innings): string {
   return formatOvers(innings.totalLegalDeliveries, 6)
-}
-
-function buildManhattanData(innings: Innings) {
-  // Group balls by overNumber
-  const overMap = new Map<number, { runs: number; wickets: number }>()
-  for (const ball of innings.ballLog) {
-    const ov = ball.overNumber
-    const entry = overMap.get(ov) ?? { runs: 0, wickets: 0 }
-    entry.runs += ball.runs
-    if (ball.isWicket) entry.wickets += 1
-    overMap.set(ov, entry)
-  }
-  return Array.from(overMap.entries())
-    .sort(([a], [b]) => a - b)
-    .map(([overNumber, d]) => ({ overNumber, ...d }))
 }
 
 function resultBannerClass(match: Match): string {
@@ -138,9 +119,18 @@ function ShareButtons({ match, scorecardRef }: { match: Match; scorecardRef: Rea
     if (!scorecardRef.current) return
     setSharing(true)
     try {
+      // Copy all CSS custom properties to the cloned document so html2canvas
+      // can resolve them (it can't read vars from the original :root).
       const canvas = await html2canvas(scorecardRef.current, {
         backgroundColor: "#09090b",
         scale: 2,
+        onclone: (clonedDoc) => {
+          const src = window.getComputedStyle(document.documentElement)
+          const dst = clonedDoc.documentElement.style
+          for (const prop of Array.from(src)) {
+            if (prop.startsWith("--")) dst.setProperty(prop, src.getPropertyValue(prop))
+          }
+        },
       })
       canvas.toBlob(async (blob) => {
         if (!blob) return
@@ -175,90 +165,21 @@ function ShareButtons({ match, scorecardRef }: { match: Match; scorecardRef: Rea
   )
 }
 
-// ─── Charts section ───────────────────────────────────────────────────────────
+// ─── Charts link button ───────────────────────────────────────────────────────
 
-function ChartsSection({ match }: { match: Match }) {
-  const [open, setOpen] = useState(false)
-
-  const inn1 = match.innings[0]
-  const inn2 = match.innings[1]
-
-  if (!inn1) return null
-
-  const maxOvers = match.rules.oversPerInnings ?? 20
-
-  const mhData1 = buildManhattanData(inn1)
-  const mhData2 = inn2 ? buildManhattanData(inn2) : undefined
-
-  const battingName1 =
-    inn1.battingTeamId === match.team1Id ? match.team1Name : match.team2Name
-  const battingName2 = inn2
-    ? inn2.battingTeamId === match.team1Id
-      ? match.team1Name
-      : match.team2Name
-    : undefined
-
-  const target2 = inn2?.target
-  const totalBalls = maxOvers * match.rules.ballsPerOver
-
+function ChartsButton({ matchId }: { matchId: string }) {
+  const navigate = useNavigate()
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
-      <button
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold hover:bg-muted/30 transition-colors"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span>Charts</span>
-        {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-      </button>
-
-      {open && (
-        <div className="px-4 pb-4 space-y-6 border-t border-border">
-          <div>
-            <div className="mt-3 mb-2">
-              <p className="text-xs font-medium text-foreground">Manhattan Chart</p>
-              <p className="text-[10px] text-muted-foreground">Runs per over — hover a bar for details</p>
-            </div>
-            <ManhattanChart
-              innings={mhData1}
-              innings2={mhData2}
-              maxOvers={maxOvers}
-              team1Name={battingName1}
-              team2Name={battingName2}
-            />
-          </div>
-
-          <div>
-            <div className="mb-2">
-              <p className="text-xs font-medium text-foreground">Worm Graph</p>
-              <p className="text-[10px] text-muted-foreground">Cumulative runs — shows scoring momentum over time</p>
-            </div>
-            <WormGraph
-              innings1Balls={inn1.ballLog}
-              innings2Balls={inn2?.ballLog}
-              ballsPerOver={match.rules.ballsPerOver}
-              maxOvers={maxOvers}
-              team1Name={battingName1}
-              team2Name={battingName2}
-            />
-          </div>
-
-          {inn2 && target2 && (
-            <div>
-              <div className="mb-2">
-                <p className="text-xs font-medium text-foreground">Run Rate (2nd Innings)</p>
-                <p className="text-[10px] text-muted-foreground">CRR vs RRR — hover for over-by-over breakdown</p>
-              </div>
-              <RunRateGraph
-                balls={inn2.ballLog}
-                target={target2}
-                ballsPerOver={match.rules.ballsPerOver}
-                totalBalls={totalBalls}
-              />
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+    <button
+      onClick={() => navigate({ to: "/charts/$matchId", params: { matchId } })}
+      className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-border bg-muted/20 hover:bg-muted/40 transition-colors text-sm font-semibold"
+    >
+      <div className="flex items-center gap-2">
+        <BarChart2 className="size-4 text-primary" />
+        <span>View Charts</span>
+      </div>
+      <span className="text-[10px] text-muted-foreground">Manhattan · Worm · Run Rate →</span>
+    </button>
   )
 }
 
@@ -434,7 +355,7 @@ function ScorecardPage() {
         )}
 
         {/* Charts */}
-        <ChartsSection match={match} />
+        <ChartsButton matchId={matchId} />
 
         {/* Share */}
         <div className="pt-2">
