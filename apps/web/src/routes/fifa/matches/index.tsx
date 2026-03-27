@@ -45,7 +45,48 @@ function FifaMatchesPage() {
   })
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — stadium / match history */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-blue-500/5"
+          animate={{ scale: [1, 1.1, 1], x: [0, -8, 0], y: [0, 10, 0] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/2 -left-20 w-52 h-52 rounded-full bg-emerald-500/4"
+          animate={{ scale: [1, 1.08, 1], y: [0, -10, 0] }}
+          transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+        />
+        <motion.div
+          className="absolute -bottom-12 right-8 w-48 h-48 rounded-full bg-violet-500/4"
+          animate={{ scale: [1, 1.12, 1], x: [0, -6, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        {/* Scoreboard lines */}
+        {[18, 42, 66, 84].map((pct, i) => (
+          <motion.div
+            key={i}
+            className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/7 to-transparent"
+            style={{ top: `${pct}%` }}
+            animate={{ opacity: [0.2, 0.5, 0.2] }}
+            transition={{ duration: 5 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.7 }}
+          />
+        ))}
+        {/* Rolling football */}
+        <motion.svg
+          className="absolute bottom-16 right-6 opacity-[0.07]"
+          width="36" height="36" viewBox="0 0 36 36"
+          animate={{ rotate: [0, 360], x: [0, -20, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <circle cx="18" cy="18" r="16" fill="white" />
+          <polygon points="18,6 22,11 20,18 16,18 14,11" fill="#1a1a1a" />
+          <polygon points="7,15 11,11 14,18 11,22 7,21" fill="#1a1a1a" />
+          <polygon points="29,15 25,11 22,18 25,22 29,21" fill="#1a1a1a" />
+          <polygon points="18,30 14,25 22,25 24,30 18,32" fill="#1a1a1a" />
+        </motion.svg>
+      </div>
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold tracking-tight">Match History</h1>

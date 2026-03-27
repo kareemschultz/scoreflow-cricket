@@ -159,7 +159,37 @@ function FifaPlayersPage() {
   }
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — player jerseys / squad */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-blue-500/5"
+          animate={{ scale: [1, 1.1, 1], y: [0, 12, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/3 -right-12 w-44 h-44 rounded-full bg-emerald-500/5"
+          animate={{ scale: [1, 1.08, 1], x: [0, -8, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+        <motion.div
+          className="absolute bottom-24 -left-10 w-36 h-36 rounded-full bg-violet-500/5"
+          animate={{ scale: [1, 1.15, 1], y: [0, -8, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        {/* Jersey number floats */}
+        {["7", "10", "9", "1"].map((num, i) => (
+          <motion.div
+            key={num}
+            className="absolute text-4xl font-black text-foreground/[0.03] select-none"
+            style={{ top: `${15 + i * 22}%`, left: `${10 + i * 22}%` }}
+            animate={{ y: [0, -8, 0], rotate: [-5, 5, -5] }}
+            transition={{ duration: 7 + i, repeat: Infinity, ease: "easeInOut", delay: i * 1.2 }}
+          >
+            {num}
+          </motion.div>
+        ))}
+      </div>
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold">FIFA Players</h1>

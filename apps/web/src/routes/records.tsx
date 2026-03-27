@@ -306,6 +306,19 @@ function RecordsPage() {
           animate={{ scale: [1, 1.12, 1], y: [0, -8, 0] }}
           transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
+        {/* Cricket stumps with bails flying */}
+        <motion.svg
+          className="absolute bottom-12 right-8 opacity-[0.07]"
+          width="52" height="64" viewBox="0 0 52 64"
+          animate={{ scaleY: [1, 1.03, 1] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <rect x="4" y="12" width="5" height="48" rx="2.5" fill="#fbbf24" />
+          <rect x="23" y="12" width="5" height="48" rx="2.5" fill="#fbbf24" />
+          <rect x="42" y="12" width="5" height="48" rx="2.5" fill="#fbbf24" />
+          <rect x="2" y="6" width="20" height="7" rx="3.5" fill="#fcd34d" />
+          <rect x="28" y="6" width="20" height="7" rx="3.5" fill="#fcd34d" />
+        </motion.svg>
         {/* Sparkling stars */}
         {[
           { top: "15%", left: "12%", delay: 0 },

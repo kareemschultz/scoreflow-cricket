@@ -676,12 +676,27 @@ function ScoringPage() {
           animate={{ scale: [1, 1.02, 1], opacity: [0.4, 0.7, 0.4] }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
-        {/* Red ball glow */}
-        <motion.div
-          className="absolute top-8 right-8 w-16 h-16 rounded-full bg-red-500/8"
-          animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0.8, 0.4] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        />
+        {/* Cricket ball — orbiting top right */}
+        <motion.svg
+          className="absolute top-6 right-6 opacity-[0.09]"
+          width="40" height="40" viewBox="0 0 40 40"
+          animate={{ rotate: [0, 360] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+        >
+          <circle cx="20" cy="20" r="18" fill="#ef4444" />
+          <path d="M4 20 Q12 12 20 20 Q28 28 36 20" stroke="white" strokeWidth="1.5" fill="none" />
+          <path d="M4 20 Q12 28 20 20 Q28 12 36 20" stroke="white" strokeWidth="1.5" fill="none" />
+        </motion.svg>
+        {/* Bat — bottom left */}
+        <motion.svg
+          className="absolute bottom-28 left-3 opacity-[0.06]"
+          width="24" height="64" viewBox="0 0 24 64"
+          animate={{ rotate: [-12, 12, -12] }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <rect x="6" y="0" width="12" height="40" rx="6" fill="#a78bfa" />
+          <rect x="9" y="38" width="6" height="22" rx="3" fill="#8b5cf6" />
+        </motion.svg>
         <motion.div
           className="absolute bottom-32 left-4 w-24 h-24 rounded-full bg-emerald-500/5"
           animate={{ scale: [1, 1.15, 1], x: [0, 6, 0] }}

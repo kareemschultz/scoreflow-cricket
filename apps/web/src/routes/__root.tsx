@@ -1,8 +1,8 @@
 import { createRootRoute, Link, Outlet, useRouterState } from "@tanstack/react-router"
-import { Home, Activity, Clock, BarChart2, Users, Trophy, Sword } from "lucide-react"
+import { Home, Activity, Clock, BarChart2, Users, Sword, Grid3x3 } from "lucide-react"
 import { useLiveQuery } from "dexie-react-hooks"
 import { AnimatePresence, motion } from "framer-motion"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { db } from "@/db/index"
 import { cn } from "@workspace/ui/lib/utils"
 import { useScoringStore } from "@/stores/scoring"
@@ -23,14 +23,71 @@ const FIFA_NAV = [
   { to: "/fifa/players", label: "Players", icon: Users, exact: false },
 ] as const
 
+// ─── Sports Menu ──────────────────────────────────────────────────────────────
+
+const SPORTS = [
+  { id: "cricket", label: "Cricket", emoji: "🏏", path: "/" },
+  { id: "football", label: "Football", emoji: "⚽", path: "/fifa" },
+  { id: "volleyball", label: "Volleyball", emoji: "🏐", path: null }, // coming soon
+] as const
+
+function SportsMenu({ currentPath, onClose }: { currentPath: string; onClose: () => void }) {
+  const activeSport = currentPath.startsWith("/fifa") ? "football" : "cricket"
+  return (
+    <motion.div
+      className="absolute bottom-full right-0 mb-2 mr-1 w-44 bg-background border border-border rounded-2xl shadow-xl overflow-hidden"
+      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+      transition={{ duration: 0.15, ease: "easeOut" }}
+    >
+      <div className="p-1.5">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 pt-1 pb-1.5">Switch Sport</p>
+        {SPORTS.map((sport) => {
+          const isActive = sport.id === activeSport
+          const isSoon = sport.path === null
+          return isSoon ? (
+            <div
+              key={sport.id}
+              className="flex items-center gap-2.5 px-2 py-2.5 rounded-xl opacity-40 cursor-not-allowed"
+            >
+              <span className="text-lg leading-none">{sport.emoji}</span>
+              <div>
+                <p className="text-sm font-medium">{sport.label}</p>
+                <p className="text-[10px] text-muted-foreground">Coming soon</p>
+              </div>
+            </div>
+          ) : (
+            <Link
+              key={sport.id}
+              to={sport.path}
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-2.5 px-2 py-2.5 rounded-xl transition-colors",
+                isActive ? "bg-primary/10 text-primary" : "hover:bg-muted/50 text-foreground"
+              )}
+            >
+              <span className="text-lg leading-none">{sport.emoji}</span>
+              <div>
+                <p className="text-sm font-medium">{sport.label}</p>
+                {isActive && <p className="text-[10px] text-primary/70">Active</p>}
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+    </motion.div>
+  )
+}
+
 // ─── Bottom Nav ───────────────────────────────────────────────────────────────
 
 function BottomNav() {
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
   const isFifaMode = currentPath.startsWith("/fifa")
+  const [sportsOpen, setSportsOpen] = useState(false)
 
-  // Check if there is a live match to highlight the Score tab
   const liveMatch = useLiveQuery(() =>
     db.matches.where("status").equals("live").first()
   )
@@ -40,51 +97,33 @@ function BottomNav() {
     return currentPath.startsWith(to)
   }
 
-  if (isFifaMode) {
-    return (
-      <nav
-        className="border-t border-border bg-background/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)]"
-        style={{ position: "sticky", bottom: 0, zIndex: 50 }}
-      >
-        <div className="flex items-stretch">
-          {FIFA_NAV.map(({ to, label, icon: Icon }) => {
-            // Home is active only when at /fifa or /fifa/
-            const active = to === "/fifa" ? (currentPath === "/fifa" || currentPath === "/fifa/") : currentPath.startsWith(to + "/")
-            return (
-              <Link
-                key={to}
-                to={to}
-                className={cn(
-                  "flex flex-1 flex-col items-center justify-center gap-1 min-h-[52px] py-2 px-1 text-xs font-medium transition-colors select-none",
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon className="size-5" strokeWidth={active ? 2.5 : 2} />
-                <span>{label}</span>
-              </Link>
-            )
-          })}
-
-          {/* Switch to Cricket */}
-          <Link
-            to="/"
-            className="flex flex-1 flex-col items-center justify-center gap-1 min-h-[52px] py-2 px-1 text-xs font-medium transition-colors select-none text-muted-foreground hover:text-foreground"
-          >
-            <span className="text-base leading-none">🏏</span>
-            <span>Cricket</span>
-          </Link>
-        </div>
-      </nav>
-    )
-  }
+  const navItems = isFifaMode ? FIFA_NAV : CRICKET_NAV
 
   return (
     <nav
-      className="border-t border-border bg-background/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)]"
+      className="border-t border-border bg-background/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)] relative"
       style={{ position: "sticky", bottom: 0, zIndex: 50 }}
     >
+      <AnimatePresence>
+        {sportsOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="fixed inset-0 z-40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSportsOpen(false)}
+            />
+            <div className="absolute bottom-full right-0 z-50">
+              <SportsMenu currentPath={currentPath} onClose={() => setSportsOpen(false)} />
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
       <div className="flex items-stretch">
-        {CRICKET_NAV.map(({ to, label, icon: Icon, exact }) => {
+        {(navItems as typeof CRICKET_NAV | typeof FIFA_NAV).map(({ to, label, icon: Icon, exact }: { to: string; label: string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; exact: boolean }) => {
           const active = isActive(to, exact)
           const isScore = to === "/scoring"
           const hasLive = isScore && !!liveMatch
@@ -95,9 +134,7 @@ function BottomNav() {
               to={to}
               className={cn(
                 "flex flex-1 flex-col items-center justify-center gap-1 min-h-[52px] py-2 px-1 text-xs font-medium transition-colors select-none",
-                active
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                active ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
               <div className="relative">
@@ -113,26 +150,24 @@ function BottomNav() {
                   <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 ring-1 ring-background" />
                 )}
               </div>
-              <span
-                className={cn(
-                  hasLive && !active && "text-emerald-500",
-                  hasLive && active && "text-emerald-400"
-                )}
-              >
+              <span className={cn(hasLive && !active && "text-emerald-500", hasLive && active && "text-emerald-400")}>
                 {label}
               </span>
             </Link>
           )
         })}
 
-        {/* Switch to FIFA */}
-        <Link
-          to="/fifa"
-          className="flex flex-1 flex-col items-center justify-center gap-1 min-h-[52px] py-2 px-1 text-xs font-medium transition-colors select-none text-muted-foreground hover:text-foreground"
+        {/* Sports switcher */}
+        <button
+          onClick={() => setSportsOpen((v) => !v)}
+          className={cn(
+            "flex flex-1 flex-col items-center justify-center gap-1 min-h-[52px] py-2 px-1 text-xs font-medium transition-colors select-none",
+            sportsOpen ? "text-primary" : "text-muted-foreground hover:text-foreground"
+          )}
         >
-          <Trophy className="size-5" strokeWidth={2} />
-          <span>FIFA</span>
-        </Link>
+          <Grid3x3 className="size-5" strokeWidth={sportsOpen ? 2.5 : 2} />
+          <span>Sports</span>
+        </button>
       </div>
     </nav>
   )

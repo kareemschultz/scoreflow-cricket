@@ -88,7 +88,35 @@ function FifaPlayerProfilePage() {
   const initials = player.name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — player spotlight */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-24 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full bg-primary/6"
+          animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/2 -left-16 w-44 h-44 rounded-full bg-blue-500/5"
+          animate={{ scale: [1, 1.1, 1], x: [0, 8, 0] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+        <motion.div
+          className="absolute bottom-16 -right-12 w-40 h-40 rounded-full bg-emerald-500/5"
+          animate={{ scale: [1, 1.12, 1], y: [0, -10, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        {/* Stat lines */}
+        {[25, 50, 75].map((pct, i) => (
+          <motion.div
+            key={i}
+            className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/6 to-transparent"
+            style={{ top: `${pct}%` }}
+            animate={{ opacity: [0.2, 0.5, 0.2] }}
+            transition={{ duration: 5 + i, repeat: Infinity, ease: "easeInOut", delay: i }}
+          />
+        ))}
+      </div>
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <button

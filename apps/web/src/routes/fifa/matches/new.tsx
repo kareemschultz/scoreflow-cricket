@@ -153,7 +153,47 @@ function NewFifaMatchPage() {
   const p2 = player2Id ? playerMap.get(player2Id) : undefined
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — kick-off energy */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-emerald-500/6"
+          animate={{ scale: [1, 1.12, 1], x: [0, -8, 0], y: [0, 10, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-20 -left-16 w-52 h-52 rounded-full bg-blue-500/5"
+          animate={{ scale: [1, 1.1, 1], x: [0, 10, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+        {/* Goal net grid */}
+        <motion.svg
+          className="absolute top-8 left-0 right-0 w-full opacity-[0.04]"
+          height="80" viewBox="0 0 400 80" preserveAspectRatio="none"
+          animate={{ opacity: [0.03, 0.06, 0.03] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        >
+          {[0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400].map((x) => (
+            <line key={x} x1={x} y1="0" x2={x} y2="80" stroke="#4ade80" strokeWidth="1" />
+          ))}
+          {[0, 20, 40, 60, 80].map((y) => (
+            <line key={y} x1="0" y1={y} x2="400" y2={y} stroke="#4ade80" strokeWidth="1" />
+          ))}
+        </motion.svg>
+        {/* Bouncing football */}
+        <motion.svg
+          className="absolute bottom-20 right-8 opacity-[0.08]"
+          width="40" height="40" viewBox="0 0 40 40"
+          animate={{ y: [0, -18, 0], rotate: [0, 180, 360] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <circle cx="20" cy="20" r="18" fill="white" />
+          <polygon points="20,7 24,13 22,20 18,20 16,13" fill="#1a1a1a" />
+          <polygon points="8,16 13,13 16,20 13,24 8,23" fill="#1a1a1a" />
+          <polygon points="32,16 27,13 24,20 27,24 32,23" fill="#1a1a1a" />
+          <polygon points="20,33 16,28 24,28 26,33 20,35" fill="#1a1a1a" />
+        </motion.svg>
+      </div>
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <button

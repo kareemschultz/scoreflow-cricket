@@ -347,6 +347,17 @@ function StatsPage() {
           animate={{ scale: [1, 1.12, 1], x: [0, -6, 0] }}
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 3 }}
         />
+        {/* Cricket ball bottom right */}
+        <motion.svg
+          className="absolute bottom-8 right-6 opacity-[0.06]"
+          width="44" height="44" viewBox="0 0 44 44"
+          animate={{ rotate: [0, 25, 0, -25, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <circle cx="22" cy="22" r="20" fill="#ef4444" />
+          <path d="M4 22 Q13 13 22 22 Q31 31 40 22" stroke="white" strokeWidth="1.5" fill="none" />
+          <path d="M4 22 Q13 31 22 22 Q31 13 40 22" stroke="white" strokeWidth="1.5" fill="none" />
+        </motion.svg>
         {/* Rising rank bars */}
         {[
           { left: "8%", height: "30%", color: "bg-amber-500/8", delay: 0 },

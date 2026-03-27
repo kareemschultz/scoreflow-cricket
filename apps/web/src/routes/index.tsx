@@ -219,7 +219,7 @@ function HomePage() {
 
   return (
     <div className="min-h-full bg-background relative overflow-hidden">
-      {/* Animated background orbs */}
+      {/* Animated background — home pitch & cricket shapes */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
         <motion.div
           className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/5"
@@ -236,6 +236,40 @@ function HomePage() {
           animate={{ scale: [1, 1.2, 1], y: [0, -8, 0] }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
+        {/* Cricket ball — bottom left */}
+        <motion.svg
+          className="absolute bottom-24 left-6 opacity-[0.06]"
+          width="48" height="48" viewBox="0 0 48 48"
+          animate={{ rotate: [0, 20, 0, -20, 0], y: [0, -6, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <circle cx="24" cy="24" r="22" fill="#ef4444" />
+          <path d="M6 24 Q16 16 24 24 Q32 32 42 24" stroke="white" strokeWidth="1.5" fill="none" />
+          <path d="M6 24 Q16 32 24 24 Q32 16 42 24" stroke="white" strokeWidth="1.5" fill="none" />
+        </motion.svg>
+        {/* Cricket bat — top left diagonal */}
+        <motion.svg
+          className="absolute top-12 left-8 opacity-[0.05]"
+          width="32" height="80" viewBox="0 0 32 80"
+          animate={{ rotate: [-8, 8, -8], x: [0, 4, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        >
+          <rect x="10" y="0" width="12" height="48" rx="6" fill="#a78bfa" />
+          <rect x="13" y="44" width="6" height="28" rx="3" fill="#8b5cf6" />
+        </motion.svg>
+        {/* Stumps — bottom right */}
+        <motion.svg
+          className="absolute bottom-8 right-10 opacity-[0.06]"
+          width="40" height="52" viewBox="0 0 40 52"
+          animate={{ scaleY: [1, 1.04, 1] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+        >
+          <rect x="4" y="8" width="4" height="40" rx="2" fill="#fbbf24" />
+          <rect x="18" y="8" width="4" height="40" rx="2" fill="#fbbf24" />
+          <rect x="32" y="8" width="4" height="40" rx="2" fill="#fbbf24" />
+          <rect x="2" y="4" width="16" height="5" rx="2.5" fill="#fcd34d" />
+          <rect x="22" y="4" width="16" height="5" rx="2.5" fill="#fcd34d" />
+        </motion.svg>
       </div>
 
       {/* Header */}
@@ -412,17 +446,6 @@ function HomePage() {
           )}
         </motion.div>
 
-        {/* Switch to FIFABook */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.2, delay: 0.15, ease: "easeOut" }}>
-          <div className="pt-2 pb-4 text-center">
-            <a
-              href="/cricketbook/fifa/"
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              ⚽ Switch to FIFABook →
-            </a>
-          </div>
-        </motion.div>
       </motion.div>
     </div>
   )

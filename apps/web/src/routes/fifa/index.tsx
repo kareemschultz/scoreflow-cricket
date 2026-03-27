@@ -198,7 +198,63 @@ function FifaHomePage() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-background relative overflow-hidden">
+      {/* Animated background — football pitch */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        {/* Centre circle */}
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full border border-emerald-500/10"
+          animate={{ scale: [1, 1.04, 1], opacity: [0.5, 0.9, 0.5] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-emerald-500/15"
+          animate={{ scale: [1, 1.5, 1] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Halfway line */}
+        <motion.div
+          className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent"
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Green field orbs */}
+        <motion.div
+          className="absolute -top-20 -left-20 w-56 h-56 rounded-full bg-emerald-500/5"
+          animate={{ scale: [1, 1.1, 1], x: [0, 8, 0], y: [0, 10, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute -bottom-16 -right-16 w-64 h-64 rounded-full bg-emerald-500/5"
+          animate={{ scale: [1, 1.12, 1], x: [0, -6, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+        {/* Football SVG */}
+        <motion.svg
+          className="absolute top-16 right-8 opacity-[0.07]"
+          width="44" height="44" viewBox="0 0 44 44"
+          animate={{ rotate: [0, 360] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        >
+          <circle cx="22" cy="22" r="20" fill="white" />
+          <polygon points="22,8 28,14 26,22 18,22 16,14" fill="#1a1a1a" />
+          <polygon points="8,18 14,14 18,22 14,28 8,26" fill="#1a1a1a" />
+          <polygon points="8,26 14,28 16,36 10,38 6,32" fill="#1a1a1a" />
+          <polygon points="22,36 18,30 26,30 28,36 22,40" fill="#1a1a1a" />
+          <polygon points="36,26 38,32 34,38 28,36 26,30" fill="#1a1a1a" />
+          <polygon points="36,18 30,22 26,14 30,10 36,14" fill="#1a1a1a" />
+        </motion.svg>
+        {/* Goal post arc — bottom */}
+        <motion.svg
+          className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-[0.06]"
+          width="120" height="60" viewBox="0 0 120 60"
+          animate={{ opacity: [0.04, 0.08, 0.04] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <path d="M0 60 L0 10 L120 10 L120 60" stroke="#4ade80" strokeWidth="3" fill="none" />
+          <line x1="0" y1="30" x2="120" y2="30" stroke="#4ade80" strokeWidth="1.5" strokeDasharray="4 3" />
+        </motion.svg>
+      </div>
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <div>
