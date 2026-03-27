@@ -7,11 +7,9 @@ import {
   shouldSwapStrikeEndOfOver,
   isOverComplete,
   getBatsmanRuns,
-  getBowlerRuns,
   getExtraRuns,
   getOversBowledByPlayer,
   computeBowlerEntry,
-  isMaidenOver,
 } from "@/lib/cricket-engine"
 
 // ─── Types ────────────────────────────────────────────────────────────────────

@@ -12,7 +12,6 @@ import {
   getRequiredRunRate,
   getCurrentRunRate,
   formatOvers,
-  canBowl,
   getOversBowledByPlayer,
   buildDismissalText,
   getCurrentPartnership,
@@ -64,7 +63,6 @@ function ScoringPage() {
 
   const {
     match,
-    matchId,
     currentInningsIndex,
     onStrikeBatsmanId,
     offStrikeBatsmanId,
@@ -72,7 +70,6 @@ function ScoringPage() {
     isFreeHit,
     overBalls,
     lastOverSummary,
-    oversBowledByBowler,
     isProcessing,
     recordBall,
     undoLastBall,
@@ -118,7 +115,6 @@ function ScoringPage() {
 
   const isSecondInnings = currentInningsIndex > 0
   const currentOver = innings.totalOvers // completed overs count = current over index
-  const legalBallsInOver = innings.totalBalls
 
   // Resolve current players from batting/bowling cards
   const striker: BatsmanEntry | undefined = innings.battingCard.find(

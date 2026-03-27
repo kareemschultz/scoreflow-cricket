@@ -1,5 +1,5 @@
 import { createRootRoute, Link, Outlet, useRouterState } from "@tanstack/react-router"
-import { Home, Activity, Clock, BarChart2, Users, Trophy } from "lucide-react"
+import { Home, Activity, Clock, BarChart2, Users } from "lucide-react"
 import { useLiveQuery } from "dexie-react-hooks"
 import { db } from "@/db/index"
 import { cn } from "@workspace/ui/lib/utils"

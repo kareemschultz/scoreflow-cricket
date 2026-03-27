@@ -221,7 +221,7 @@ function HomePage() {
             <Button
               variant="outline"
               className="h-14 flex flex-col gap-1 text-sm font-medium border-dashed"
-              onClick={() => navigate({ to: "/tournaments/" })}
+              onClick={() => navigate({ to: "/tournaments" })}
             >
               <Trophy className="size-4" />
               Tournaments

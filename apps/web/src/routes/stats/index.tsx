@@ -5,7 +5,6 @@ import { BarChart2, TrendingUp, Zap, Target, Star } from "lucide-react"
 import { db } from "@/db/index"
 import type { StatFilter, PlayerBattingStats, PlayerBowlingStats } from "@/types/cricket"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
-import { Badge } from "@workspace/ui/components/badge"
 import { Card, CardContent } from "@workspace/ui/components/card"
 
 // ─── Route ────────────────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import { format } from "date-fns"
 import { Trophy, TrendingUp, Zap, Shield, Star, Target } from "lucide-react"
 import { db } from "@/db/index"
 import type { Match, BatsmanEntry, BowlerEntry } from "@/types/cricket"
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import { Card, CardContent } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
 import { Separator } from "@workspace/ui/components/separator"
 

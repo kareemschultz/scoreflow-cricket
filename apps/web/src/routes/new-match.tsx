@@ -690,7 +690,6 @@ function Step4PlayingXI({
   const displayPlayers = activeTab === 1 ? team1Players : team2Players
   const selectedXI = activeTab === 1 ? playingXI1 : playingXI2
   const onChange = activeTab === 1 ? onXI1Change : onXI2Change
-  const allPlayers = activeTab === 1 ? team1Players : team2Players
 
   return (
     <div className="space-y-4">
@@ -953,11 +952,11 @@ function NewMatchPage() {
 
   // Reactive team data
   const team1 = useLiveQuery(
-    () => (team1Id ? db.teams.get(team1Id) : Promise.resolve(undefined)),
+    async () => (team1Id ? db.teams.get(team1Id) : undefined),
     [team1Id]
   )
   const team2 = useLiveQuery(
-    () => (team2Id ? db.teams.get(team2Id) : Promise.resolve(undefined)),
+    async () => (team2Id ? db.teams.get(team2Id) : undefined),
     [team2Id]
   )
 
