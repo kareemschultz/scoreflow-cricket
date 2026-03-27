@@ -2,8 +2,10 @@ import { createRootRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { Home, Activity, Clock, BarChart2, Users } from "lucide-react"
 import { useLiveQuery } from "dexie-react-hooks"
 import { AnimatePresence, motion } from "framer-motion"
+import { useEffect } from "react"
 import { db } from "@/db/index"
 import { cn } from "@workspace/ui/lib/utils"
+import { useScoringStore } from "@/stores/scoring"
 
 // ─── Bottom Nav ───────────────────────────────────────────────────────────────
 
@@ -84,6 +86,15 @@ function BottomNav() {
 
 function RootLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const { match, loadMatch } = useScoringStore()
+
+  // Rehydrate scoring store from Dexie on app startup if there's a live match
+  useEffect(() => {
+    if (match) return // already loaded
+    db.matches.where("status").equals("live").first().then((liveMatch) => {
+      if (liveMatch) loadMatch(liveMatch.id)
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex flex-col h-dvh bg-background">
