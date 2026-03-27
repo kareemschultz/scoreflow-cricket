@@ -254,8 +254,18 @@ function ChartsSection({ match }: { match: Match }) {
 
 // ─── Innings Tab Content ──────────────────────────────────────────────────────
 
-function InningsTabContent({ innings }: { innings: Innings }) {
+function InningsTabContent({ innings, match }: { innings: Innings; match: Match }) {
   const ovStr = oversStr(innings)
+
+  // Determine captain/keeper for the batting team in this innings
+  const captainId =
+    innings.battingTeamId === match.team1Id
+      ? match.captainTeam1Id
+      : match.captainTeam2Id
+  const wicketKeeperId =
+    innings.battingTeamId === match.team1Id
+      ? match.wicketKeeperTeam1Id
+      : match.wicketKeeperTeam2Id
 
   return (
     <div className="space-y-5 pt-3">
@@ -265,6 +275,8 @@ function InningsTabContent({ innings }: { innings: Innings }) {
         totalRuns={innings.totalRuns}
         totalWickets={innings.totalWickets}
         oversStr={ovStr}
+        captainId={captainId}
+        wicketKeeperId={wicketKeeperId}
       />
 
       <div className="border-t border-border pt-4">
@@ -371,7 +383,7 @@ function ScorecardPage() {
 
             {completedInnings.map((inn, idx) => (
               <TabsContent key={inn.index} value={String(idx)}>
-                <InningsTabContent innings={inn} />
+                <InningsTabContent innings={inn} match={match} />
               </TabsContent>
             ))}
           </Tabs>

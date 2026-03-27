@@ -1,5 +1,5 @@
 import { createRootRoute, Link, Outlet, useRouterState } from "@tanstack/react-router"
-import { Home, Activity, Clock, BarChart2, Users } from "lucide-react"
+import { Home, Activity, Clock, BarChart2, Users, Trophy, Sword } from "lucide-react"
 import { useLiveQuery } from "dexie-react-hooks"
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect } from "react"
@@ -7,9 +7,9 @@ import { db } from "@/db/index"
 import { cn } from "@workspace/ui/lib/utils"
 import { useScoringStore } from "@/stores/scoring"
 
-// ─── Bottom Nav ───────────────────────────────────────────────────────────────
+// ─── Nav config ───────────────────────────────────────────────────────────────
 
-const NAV_ITEMS = [
+const CRICKET_NAV = [
   { to: "/", label: "Home", icon: Home, exact: true },
   { to: "/scoring", label: "Score", icon: Activity, exact: false },
   { to: "/history", label: "History", icon: Clock, exact: false },
@@ -17,9 +17,18 @@ const NAV_ITEMS = [
   { to: "/teams", label: "Teams", icon: Users, exact: false },
 ] as const
 
+const FIFA_NAV = [
+  { to: "/fifa", label: "Home", icon: Home, exact: true },
+  { to: "/fifa/matches", label: "Matches", icon: Sword, exact: false },
+  { to: "/fifa/players", label: "Players", icon: Users, exact: false },
+] as const
+
+// ─── Bottom Nav ───────────────────────────────────────────────────────────────
+
 function BottomNav() {
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
+  const isFifaMode = currentPath.startsWith("/fifa")
 
   // Check if there is a live match to highlight the Score tab
   const liveMatch = useLiveQuery(() =>
@@ -31,13 +40,51 @@ function BottomNav() {
     return currentPath.startsWith(to)
   }
 
+  if (isFifaMode) {
+    return (
+      <nav
+        className="border-t border-border bg-background/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)]"
+        style={{ position: "sticky", bottom: 0, zIndex: 50 }}
+      >
+        <div className="flex items-stretch">
+          {FIFA_NAV.map(({ to, label, icon: Icon }) => {
+            // Home is active only when at /fifa or /fifa/
+            const active = to === "/fifa" ? (currentPath === "/fifa" || currentPath === "/fifa/") : currentPath.startsWith(to + "/")
+            return (
+              <Link
+                key={to}
+                to={to}
+                className={cn(
+                  "flex flex-1 flex-col items-center justify-center gap-1 min-h-[52px] py-2 px-1 text-xs font-medium transition-colors select-none",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Icon className="size-5" strokeWidth={active ? 2.5 : 2} />
+                <span>{label}</span>
+              </Link>
+            )
+          })}
+
+          {/* Switch to Cricket */}
+          <Link
+            to="/"
+            className="flex flex-1 flex-col items-center justify-center gap-1 min-h-[52px] py-2 px-1 text-xs font-medium transition-colors select-none text-muted-foreground hover:text-foreground"
+          >
+            <span className="text-base leading-none">🏏</span>
+            <span>Cricket</span>
+          </Link>
+        </div>
+      </nav>
+    )
+  }
+
   return (
     <nav
       className="border-t border-border bg-background/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)]"
       style={{ position: "sticky", bottom: 0, zIndex: 50 }}
     >
       <div className="flex items-stretch">
-        {NAV_ITEMS.map(({ to, label, icon: Icon, exact }) => {
+        {CRICKET_NAV.map(({ to, label, icon: Icon, exact }) => {
           const active = isActive(to, exact)
           const isScore = to === "/scoring"
           const hasLive = isScore && !!liveMatch
@@ -77,6 +124,15 @@ function BottomNav() {
             </Link>
           )
         })}
+
+        {/* Switch to FIFA */}
+        <Link
+          to="/fifa"
+          className="flex flex-1 flex-col items-center justify-center gap-1 min-h-[52px] py-2 px-1 text-xs font-medium transition-colors select-none text-muted-foreground hover:text-foreground"
+        >
+          <Trophy className="size-5" strokeWidth={2} />
+          <span>FIFA</span>
+        </Link>
       </div>
     </nav>
   )

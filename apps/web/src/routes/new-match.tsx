@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import {
   ChevronLeft,
   ChevronRight,
@@ -376,14 +376,27 @@ function Step2Format({ format, rules, onFormatChange, onRulesChange }: Step2Prop
               value={rules.oversPerInnings ?? 0}
               min={0}
               max={999}
-              onChange={(v) => patch({ oversPerInnings: v === 0 ? null : v })}
+              onChange={(v) => {
+                const overs = v === 0 ? null : v
+                // Auto-clamp maxOversPerBowler if it now exceeds total overs
+                const maxPerBowler = rules.maxOversPerBowler
+                if (overs !== null && maxPerBowler !== null && maxPerBowler > overs) {
+                  patch({ oversPerInnings: overs, maxOversPerBowler: overs })
+                } else {
+                  patch({ oversPerInnings: overs })
+                }
+              }}
             />
             <NumberRule
               label="Max overs per bowler"
-              sub="0 = no limit"
+              sub={
+                rules.oversPerInnings !== null
+                  ? `0 = no limit · max ${rules.oversPerInnings} (innings overs)`
+                  : "0 = no limit"
+              }
               value={rules.maxOversPerBowler ?? 0}
               min={0}
-              max={999}
+              max={rules.oversPerInnings ?? 999}
               onChange={(v) => patch({ maxOversPerBowler: v === 0 ? null : v })}
             />
             <NumberRule
@@ -394,7 +407,8 @@ function Step2Format({ format, rules, onFormatChange, onRulesChange }: Step2Prop
               onChange={(v) => patch({ ballsPerOver: v })}
             />
             <NumberRule
-              label="Max wickets (team size − 1)"
+              label="Max wickets"
+              sub={`Team size will be ${rules.maxWickets + 1} players`}
               value={rules.maxWickets}
               min={1}
               max={20}
@@ -503,6 +517,27 @@ interface NumberRuleProps {
 }
 
 function NumberRule({ label, sub, value, min, max, onChange }: NumberRuleProps) {
+  // Use local string state so typing works freely; clamp and commit on blur
+  const [localValue, setLocalValue] = useState(String(value))
+
+  useEffect(() => {
+    setLocalValue(String(value))
+  }, [value])
+
+  function commit(raw: string) {
+    const v = parseInt(raw, 10)
+    if (isNaN(v) || v < min) {
+      onChange(min)
+      setLocalValue(String(min))
+    } else if (v > max) {
+      onChange(max)
+      setLocalValue(String(max))
+    } else {
+      onChange(v)
+      setLocalValue(String(v))
+    }
+  }
+
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="min-w-0">
@@ -513,13 +548,16 @@ function NumberRule({ label, sub, value, min, max, onChange }: NumberRuleProps) 
         type="number"
         inputMode="numeric"
         className="h-9 w-20 text-center shrink-0"
-        value={value}
+        value={localValue}
         min={min}
         max={max}
         onChange={(e) => {
+          setLocalValue(e.target.value)
+          // Fire immediately for in-bounds values so the rest of the UI reacts
           const v = parseInt(e.target.value, 10)
           if (!isNaN(v) && v >= min && v <= max) onChange(v)
         }}
+        onBlur={(e) => commit(e.target.value)}
       />
     </div>
   )
@@ -669,6 +707,8 @@ function Step4PlayingXI({
   onXI2Change,
 }: Step4Props) {
   const [activeTab, setActiveTab] = useState<1 | 2>(1)
+  const [newPlayerName, setNewPlayerName] = useState("")
+  const [addingPlayer, setAddingPlayer] = useState(false)
 
   const team1Players = useLiveQuery(
     () => db.players.where("teamId").equals(team1Id).sortBy("createdAt"),
@@ -684,6 +724,26 @@ function Step4PlayingXI({
       onChange(current.filter((id) => id !== playerId))
     } else if (current.length < maxPlayers + 1) {
       onChange([...current, playerId])
+    }
+  }
+
+  async function handleAddPlayer() {
+    const name = newPlayerName.trim()
+    if (!name) return
+    setAddingPlayer(true)
+    try {
+      const teamId = activeTab === 1 ? team1Id : team2Id
+      const id = nanoid()
+      await db.players.add({ id, name, teamId, createdAt: new Date() })
+      // Auto-select the new player
+      const currentXI = activeTab === 1 ? playingXI1 : playingXI2
+      const onXIChange = activeTab === 1 ? onXI1Change : onXI2Change
+      if (currentXI.length < maxPlayers + 1) {
+        onXIChange([...currentXI, id])
+      }
+      setNewPlayerName("")
+    } finally {
+      setAddingPlayer(false)
     }
   }
 
@@ -719,6 +779,31 @@ function Step4PlayingXI({
         })}
       </div>
 
+      {/* Inline add player */}
+      <div className="px-4">
+        <form
+          onSubmit={(e) => { e.preventDefault(); handleAddPlayer() }}
+          className="flex gap-2"
+        >
+          <Input
+            placeholder="Add player name…"
+            value={newPlayerName}
+            onChange={(e) => setNewPlayerName(e.target.value)}
+            className="flex-1 h-9 text-sm"
+          />
+          <Button
+            type="submit"
+            size="sm"
+            variant="outline"
+            disabled={!newPlayerName.trim() || addingPlayer}
+            className="h-9 px-3 shrink-0"
+          >
+            <Plus className="size-3.5 mr-1" />
+            Add
+          </Button>
+        </form>
+      </div>
+
       {/* Player list */}
       <div className="px-4">
         {displayPlayers === undefined ? (
@@ -729,11 +814,11 @@ function Step4PlayingXI({
           </div>
         ) : displayPlayers.length === 0 ? (
           <Card className="border-dashed">
-            <CardContent className="py-8 text-center">
-              <Users className="size-8 text-muted-foreground/40 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">No players in this team</p>
+            <CardContent className="py-6 text-center">
+              <Users className="size-7 text-muted-foreground/40 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No players yet</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Add players from the Teams tab first
+                Type a name above and tap Add
               </p>
             </CardContent>
           </Card>
@@ -785,21 +870,33 @@ function Step4PlayingXI({
   )
 }
 
-// ─── Step 5: Openers & Opening Bowler ─────────────────────────────────────────
+// ─── Step 5: Openers, Captain & Keeper ────────────────────────────────────────
 
 interface Step5Props {
   battingTeamId: string
   bowlingTeamId: string
   battingTeamName: string
   bowlingTeamName: string
+  team1Name: string
+  team2Name: string
   battingXI: string[]
   bowlingXI: string[]
+  playingXI1: string[]
+  playingXI2: string[]
   striker: string | null
   nonStriker: string | null
   openingBowler: string | null
+  captainTeam1Id: string | null
+  captainTeam2Id: string | null
+  wicketKeeperTeam1Id: string | null
+  wicketKeeperTeam2Id: string | null
   onStriker: (id: string) => void
   onNonStriker: (id: string) => void
   onOpeningBowler: (id: string) => void
+  onCaptainTeam1: (id: string) => void
+  onCaptainTeam2: (id: string) => void
+  onWicketKeeperTeam1: (id: string) => void
+  onWicketKeeperTeam2: (id: string) => void
 }
 
 function Step5Openers({
@@ -807,14 +904,26 @@ function Step5Openers({
   bowlingTeamId: _bowlingTeamId,
   battingTeamName,
   bowlingTeamName,
+  team1Name,
+  team2Name,
   battingXI,
   bowlingXI,
+  playingXI1,
+  playingXI2,
   striker,
   nonStriker,
   openingBowler,
+  captainTeam1Id,
+  captainTeam2Id,
+  wicketKeeperTeam1Id,
+  wicketKeeperTeam2Id,
   onStriker,
   onNonStriker,
   onOpeningBowler,
+  onCaptainTeam1,
+  onCaptainTeam2,
+  onWicketKeeperTeam1,
+  onWicketKeeperTeam2,
 }: Step5Props) {
   const allPlayers = useLiveQuery(async () => {
     const ids = [...new Set([...battingXI, ...bowlingXI])]
@@ -880,6 +989,46 @@ function Step5Openers({
     )
   }
 
+  // Compact chip selector for captain/keeper
+  function RoleChipSelector({
+    teamName,
+    playerIds,
+    selected,
+    onSelect,
+  }: {
+    teamName: string
+    playerIds: string[]
+    selected: string | null
+    onSelect: (id: string) => void
+  }) {
+    return (
+      <div className="space-y-1.5">
+        <p className="text-[11px] font-medium text-muted-foreground">{teamName}</p>
+        <div className="flex flex-wrap gap-1">
+          {playerIds.map((pid) => {
+            const player = allPlayers?.[pid]
+            const firstName = player?.name?.split(" ")[0] ?? "…"
+            const isSelected = selected === pid
+            return (
+              <button
+                key={pid}
+                onClick={() => onSelect(pid)}
+                className={[
+                  "px-2 py-1 rounded-md border text-[11px] font-medium transition-colors",
+                  isSelected
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/40 border-border text-foreground/70 hover:bg-muted/70",
+                ].join(" ")}
+              >
+                {firstName}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="px-4 space-y-6">
       <div>
@@ -915,6 +1064,51 @@ function Step5Openers({
           onSelect={onOpeningBowler}
         />
       </div>
+
+      <Separator />
+
+      {/* Optional: Captains & Wicket-keepers */}
+      <div className="space-y-4">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Captains &amp; Keepers <span className="normal-case font-normal">(optional)</span>
+        </p>
+
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-foreground/80">Captain (c)</p>
+          <div className="grid grid-cols-1 gap-3">
+            <RoleChipSelector
+              teamName={team1Name}
+              playerIds={playingXI1}
+              selected={captainTeam1Id}
+              onSelect={onCaptainTeam1}
+            />
+            <RoleChipSelector
+              teamName={team2Name}
+              playerIds={playingXI2}
+              selected={captainTeam2Id}
+              onSelect={onCaptainTeam2}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-foreground/80">Wicket-keeper (wk)</p>
+          <div className="grid grid-cols-1 gap-3">
+            <RoleChipSelector
+              teamName={team1Name}
+              playerIds={playingXI1}
+              selected={wicketKeeperTeam1Id}
+              onSelect={onWicketKeeperTeam1}
+            />
+            <RoleChipSelector
+              teamName={team2Name}
+              playerIds={playingXI2}
+              selected={wicketKeeperTeam2Id}
+              onSelect={onWicketKeeperTeam2}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -947,6 +1141,10 @@ function NewMatchPage() {
   const [striker, setStriker] = useState<string | null>(null)
   const [nonStriker, setNonStriker] = useState<string | null>(null)
   const [openingBowler, setOpeningBowler] = useState<string | null>(null)
+  const [captainTeam1Id, setCaptainTeam1Id] = useState<string | null>(null)
+  const [captainTeam2Id, setCaptainTeam2Id] = useState<string | null>(null)
+  const [wicketKeeperTeam1Id, setWicketKeeperTeam1Id] = useState<string | null>(null)
+  const [wicketKeeperTeam2Id, setWicketKeeperTeam2Id] = useState<string | null>(null)
 
   const [starting, setStarting] = useState(false)
 
@@ -1074,6 +1272,10 @@ function NewMatchPage() {
         date: new Date(),
         status: "live",
         isSuperOver: false,
+        captainTeam1Id: captainTeam1Id ?? undefined,
+        captainTeam2Id: captainTeam2Id ?? undefined,
+        wicketKeeperTeam1Id: wicketKeeperTeam1Id ?? undefined,
+        wicketKeeperTeam2Id: wicketKeeperTeam2Id ?? undefined,
       }
 
       await db.matches.add(match)
@@ -1099,6 +1301,8 @@ function NewMatchPage() {
     battingTeamId, bowlingTeamId,
     playingXI1, playingXI2,
     striker, nonStriker, openingBowler,
+    captainTeam1Id, captainTeam2Id,
+    wicketKeeperTeam1Id, wicketKeeperTeam2Id,
     loadMatch, navigate,
   ])
 
@@ -1213,14 +1417,26 @@ function NewMatchPage() {
                     ? team1?.name ?? "Team A"
                     : team2?.name ?? "Team B"
                 }
+                team1Name={team1?.name ?? "Team A"}
+                team2Name={team2?.name ?? "Team B"}
                 battingXI={battingXI}
                 bowlingXI={bowlingXI}
+                playingXI1={playingXI1}
+                playingXI2={playingXI2}
                 striker={striker}
                 nonStriker={nonStriker}
                 openingBowler={openingBowler}
+                captainTeam1Id={captainTeam1Id}
+                captainTeam2Id={captainTeam2Id}
+                wicketKeeperTeam1Id={wicketKeeperTeam1Id}
+                wicketKeeperTeam2Id={wicketKeeperTeam2Id}
                 onStriker={setStriker}
                 onNonStriker={setNonStriker}
                 onOpeningBowler={setOpeningBowler}
+                onCaptainTeam1={setCaptainTeam1Id}
+                onCaptainTeam2={setCaptainTeam2Id}
+                onWicketKeeperTeam1={setWicketKeeperTeam1Id}
+                onWicketKeeperTeam2={setWicketKeeperTeam2Id}
               />
             )}
         </div>

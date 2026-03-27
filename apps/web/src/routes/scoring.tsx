@@ -100,6 +100,7 @@ function ScoringPage() {
   const [nbPickerOpen, setNbPickerOpen] = useState(false)
   const [byePickerOpen, setByePickerOpen] = useState(false)
   const [lbPickerOpen, setLbPickerOpen] = useState(false)
+  const [otPickerOpen, setOtPickerOpen] = useState(false)
   const [scoreFlash, setScoreFlash] = useState<"boundary" | "six" | "wicket" | null>(null)
 
   // Redirect if no live match
@@ -337,6 +338,25 @@ function ScoringPage() {
       })
     )
     await recordBall(ball)
+    checkPostBall()
+  }
+
+  // ── overthrow handler ─────────────────────────────────────────────────────
+
+  async function handleOverthrow(totalRuns: number) {
+    if (!onStrikeBatsmanId || !currentBowlerId || isProcessing) return
+    haptic()
+    const ball = createBall(
+      buildCoreBallInput({
+        runs: totalRuns,
+        batsmanRuns: totalRuns,
+        isExtra: false,
+        extraRuns: 0,
+      })
+    )
+    ball.overthrows = totalRuns
+    await recordBall(ball)
+    setScoreFlash("boundary")
     checkPostBall()
   }
 
@@ -825,6 +845,19 @@ function ScoringPage() {
           </button>
         </div>
 
+        {/* Overthrow */}
+        <button
+          disabled={!canScore}
+          onClick={() => setOtPickerOpen(true)}
+          className={cn(
+            "h-9 rounded-xl border text-xs font-semibold transition-all active:scale-95",
+            "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400",
+            "hover:bg-amber-500/20 disabled:opacity-40 disabled:pointer-events-none"
+          )}
+        >
+          Overthrow
+        </button>
+
         {/* Wicket + Undo */}
         <div className="grid grid-cols-3 gap-1.5">
           <button
@@ -905,6 +938,16 @@ function ScoringPage() {
         title="Leg Byes — How many?"
         options={[1, 2, 3, 4]}
         colorClass="bg-muted/50 hover:bg-muted border-border text-foreground"
+      />
+
+      {/* Overthrow picker */}
+      <RunPickerDialog
+        open={otPickerOpen}
+        onClose={() => setOtPickerOpen(false)}
+        onSelect={(runs) => handleOverthrow(runs)}
+        title="Overthrow — Total runs on ball?"
+        options={[4, 5, 6, 7]}
+        colorClass="bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/40 text-amber-600 dark:text-amber-400"
       />
 
       {/* Wicket dialog */}

@@ -27,25 +27,14 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build CricketBook
+      - name: Build CricketBook (includes FIFA tracker)
         run: bun run build
         working-directory: apps/web
-
-      - name: Build FIFABook
-        run: bun run build
-        working-directory: apps/fifa
-
-      - name: Combine build artifacts
-        run: |
-          mkdir -p combined
-          cp -r apps/web/dist/. combined/
-          mkdir -p combined/fifa
-          cp -r apps/fifa/dist/. combined/fifa/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: combined
+          path: apps/web/dist
 
   deploy:
     needs: build

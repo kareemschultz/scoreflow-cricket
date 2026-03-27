@@ -214,6 +214,7 @@ export interface Ball {
   nextIsFreeHit: boolean       // does the NEXT ball get a free hit?
   isNoBallBatRuns: boolean     // batsman ran on a no-ball
   wagonZone?: number           // 1-8 wagon wheel zone (optional)
+  overthrows?: number          // runs scored via fielding overthrows (annotation, NOT extras)
   powerplay: boolean           // was this in the powerplay?
   timestamp: Date
 }
@@ -333,6 +334,10 @@ export interface Match {
   tournamentFixtureId?: string
   isSuperOver: boolean
   parentMatchId?: string       // if this is a super over, the parent match
+  captainTeam1Id?: string      // playerId serving as captain for team1 in this match
+  captainTeam2Id?: string      // playerId serving as captain for team2 in this match
+  wicketKeeperTeam1Id?: string // playerId keeping wicket for team1 in this match
+  wicketKeeperTeam2Id?: string // playerId keeping wicket for team2 in this match
 }
 
 // ─── Player Stats (aggregated) ───────────────────────────────────────────────

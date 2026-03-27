@@ -18,10 +18,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TournamentsIndexRouteImport } from './routes/tournaments/index'
 import { Route as TeamsIndexRouteImport } from './routes/teams/index'
 import { Route as StatsIndexRouteImport } from './routes/stats/index'
+import { Route as FifaIndexRouteImport } from './routes/fifa/index'
 import { Route as TournamentsTournamentIdRouteImport } from './routes/tournaments/$tournamentId'
 import { Route as TeamsTeamIdRouteImport } from './routes/teams/$teamId'
 import { Route as StatsPlayerIdRouteImport } from './routes/stats/$playerId'
 import { Route as ScorecardMatchIdRouteImport } from './routes/scorecard.$matchId'
+import { Route as FifaPlayersIndexRouteImport } from './routes/fifa/players/index'
+import { Route as FifaMatchesIndexRouteImport } from './routes/fifa/matches/index'
+import { Route as FifaPlayersPlayerIdRouteImport } from './routes/fifa/players/$playerId'
+import { Route as FifaMatchesNewRouteImport } from './routes/fifa/matches/new'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -68,6 +73,11 @@ const StatsIndexRoute = StatsIndexRouteImport.update({
   path: '/stats/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FifaIndexRoute = FifaIndexRouteImport.update({
+  id: '/fifa/',
+  path: '/fifa/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TournamentsTournamentIdRoute = TournamentsTournamentIdRouteImport.update({
   id: '/tournaments/$tournamentId',
   path: '/tournaments/$tournamentId',
@@ -88,6 +98,26 @@ const ScorecardMatchIdRoute = ScorecardMatchIdRouteImport.update({
   path: '/scorecard/$matchId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FifaPlayersIndexRoute = FifaPlayersIndexRouteImport.update({
+  id: '/fifa/players/',
+  path: '/fifa/players/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FifaMatchesIndexRoute = FifaMatchesIndexRouteImport.update({
+  id: '/fifa/matches/',
+  path: '/fifa/matches/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FifaPlayersPlayerIdRoute = FifaPlayersPlayerIdRouteImport.update({
+  id: '/fifa/players/$playerId',
+  path: '/fifa/players/$playerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FifaMatchesNewRoute = FifaMatchesNewRouteImport.update({
+  id: '/fifa/matches/new',
+  path: '/fifa/matches/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -100,9 +130,14 @@ export interface FileRoutesByFullPath {
   '/stats/$playerId': typeof StatsPlayerIdRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
   '/tournaments/$tournamentId': typeof TournamentsTournamentIdRoute
+  '/fifa/': typeof FifaIndexRoute
   '/stats/': typeof StatsIndexRoute
   '/teams/': typeof TeamsIndexRoute
   '/tournaments/': typeof TournamentsIndexRoute
+  '/fifa/matches/new': typeof FifaMatchesNewRoute
+  '/fifa/players/$playerId': typeof FifaPlayersPlayerIdRoute
+  '/fifa/matches/': typeof FifaMatchesIndexRoute
+  '/fifa/players/': typeof FifaPlayersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -115,9 +150,14 @@ export interface FileRoutesByTo {
   '/stats/$playerId': typeof StatsPlayerIdRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
   '/tournaments/$tournamentId': typeof TournamentsTournamentIdRoute
+  '/fifa': typeof FifaIndexRoute
   '/stats': typeof StatsIndexRoute
   '/teams': typeof TeamsIndexRoute
   '/tournaments': typeof TournamentsIndexRoute
+  '/fifa/matches/new': typeof FifaMatchesNewRoute
+  '/fifa/players/$playerId': typeof FifaPlayersPlayerIdRoute
+  '/fifa/matches': typeof FifaMatchesIndexRoute
+  '/fifa/players': typeof FifaPlayersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -131,9 +171,14 @@ export interface FileRoutesById {
   '/stats/$playerId': typeof StatsPlayerIdRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
   '/tournaments/$tournamentId': typeof TournamentsTournamentIdRoute
+  '/fifa/': typeof FifaIndexRoute
   '/stats/': typeof StatsIndexRoute
   '/teams/': typeof TeamsIndexRoute
   '/tournaments/': typeof TournamentsIndexRoute
+  '/fifa/matches/new': typeof FifaMatchesNewRoute
+  '/fifa/players/$playerId': typeof FifaPlayersPlayerIdRoute
+  '/fifa/matches/': typeof FifaMatchesIndexRoute
+  '/fifa/players/': typeof FifaPlayersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -148,9 +193,14 @@ export interface FileRouteTypes {
     | '/stats/$playerId'
     | '/teams/$teamId'
     | '/tournaments/$tournamentId'
+    | '/fifa/'
     | '/stats/'
     | '/teams/'
     | '/tournaments/'
+    | '/fifa/matches/new'
+    | '/fifa/players/$playerId'
+    | '/fifa/matches/'
+    | '/fifa/players/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -163,9 +213,14 @@ export interface FileRouteTypes {
     | '/stats/$playerId'
     | '/teams/$teamId'
     | '/tournaments/$tournamentId'
+    | '/fifa'
     | '/stats'
     | '/teams'
     | '/tournaments'
+    | '/fifa/matches/new'
+    | '/fifa/players/$playerId'
+    | '/fifa/matches'
+    | '/fifa/players'
   id:
     | '__root__'
     | '/'
@@ -178,9 +233,14 @@ export interface FileRouteTypes {
     | '/stats/$playerId'
     | '/teams/$teamId'
     | '/tournaments/$tournamentId'
+    | '/fifa/'
     | '/stats/'
     | '/teams/'
     | '/tournaments/'
+    | '/fifa/matches/new'
+    | '/fifa/players/$playerId'
+    | '/fifa/matches/'
+    | '/fifa/players/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -194,9 +254,14 @@ export interface RootRouteChildren {
   StatsPlayerIdRoute: typeof StatsPlayerIdRoute
   TeamsTeamIdRoute: typeof TeamsTeamIdRoute
   TournamentsTournamentIdRoute: typeof TournamentsTournamentIdRoute
+  FifaIndexRoute: typeof FifaIndexRoute
   StatsIndexRoute: typeof StatsIndexRoute
   TeamsIndexRoute: typeof TeamsIndexRoute
   TournamentsIndexRoute: typeof TournamentsIndexRoute
+  FifaMatchesNewRoute: typeof FifaMatchesNewRoute
+  FifaPlayersPlayerIdRoute: typeof FifaPlayersPlayerIdRoute
+  FifaMatchesIndexRoute: typeof FifaMatchesIndexRoute
+  FifaPlayersIndexRoute: typeof FifaPlayersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -264,6 +329,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StatsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fifa/': {
+      id: '/fifa/'
+      path: '/fifa'
+      fullPath: '/fifa/'
+      preLoaderRoute: typeof FifaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tournaments/$tournamentId': {
       id: '/tournaments/$tournamentId'
       path: '/tournaments/$tournamentId'
@@ -292,6 +364,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScorecardMatchIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fifa/players/': {
+      id: '/fifa/players/'
+      path: '/fifa/players'
+      fullPath: '/fifa/players/'
+      preLoaderRoute: typeof FifaPlayersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fifa/matches/': {
+      id: '/fifa/matches/'
+      path: '/fifa/matches'
+      fullPath: '/fifa/matches/'
+      preLoaderRoute: typeof FifaMatchesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fifa/players/$playerId': {
+      id: '/fifa/players/$playerId'
+      path: '/fifa/players/$playerId'
+      fullPath: '/fifa/players/$playerId'
+      preLoaderRoute: typeof FifaPlayersPlayerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fifa/matches/new': {
+      id: '/fifa/matches/new'
+      path: '/fifa/matches/new'
+      fullPath: '/fifa/matches/new'
+      preLoaderRoute: typeof FifaMatchesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -306,9 +406,14 @@ const rootRouteChildren: RootRouteChildren = {
   StatsPlayerIdRoute: StatsPlayerIdRoute,
   TeamsTeamIdRoute: TeamsTeamIdRoute,
   TournamentsTournamentIdRoute: TournamentsTournamentIdRoute,
+  FifaIndexRoute: FifaIndexRoute,
   StatsIndexRoute: StatsIndexRoute,
   TeamsIndexRoute: TeamsIndexRoute,
   TournamentsIndexRoute: TournamentsIndexRoute,
+  FifaMatchesNewRoute: FifaMatchesNewRoute,
+  FifaPlayersPlayerIdRoute: FifaPlayersPlayerIdRoute,
+  FifaMatchesIndexRoute: FifaMatchesIndexRoute,
+  FifaPlayersIndexRoute: FifaPlayersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

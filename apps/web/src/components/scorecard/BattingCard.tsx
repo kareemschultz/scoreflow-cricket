@@ -18,6 +18,8 @@ interface BattingCardProps {
   totalRuns: number
   totalWickets: number
   oversStr: string
+  captainId?: string
+  wicketKeeperId?: string
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -38,7 +40,16 @@ function extrasLabel(e: ExtrasBreakdown): string {
 
 // ─── BattingCard ──────────────────────────────────────────────────────────────
 
-export function BattingCard({ battingCard, extras, totalRuns, totalWickets, oversStr }: BattingCardProps) {
+function getRoleSuffix(playerId: string, captainId?: string, wicketKeeperId?: string): string {
+  const isCap = playerId === captainId
+  const isWk = playerId === wicketKeeperId
+  if (isCap && isWk) return " (c)(wk)"
+  if (isCap) return " (c)"
+  if (isWk) return " (wk)"
+  return ""
+}
+
+export function BattingCard({ battingCard, extras, totalRuns, totalWickets, oversStr, captainId, wicketKeeperId }: BattingCardProps) {
   return (
     <div className="w-full overflow-x-auto">
       <table className="w-full text-xs min-w-[340px]">
@@ -65,9 +76,15 @@ export function BattingCard({ battingCard, extras, totalRuns, totalWickets, over
             >
               <td className="py-1.5 px-2">
                 {!b.isOut && !b.isRetiredHurt ? (
-                  <span className="font-semibold">{b.playerName}*</span>
+                  <span className="font-semibold">
+                    {b.playerName}*
+                    <span className="font-normal text-muted-foreground">{getRoleSuffix(b.playerId, captainId, wicketKeeperId)}</span>
+                  </span>
                 ) : (
-                  <span>{b.playerName}</span>
+                  <span>
+                    {b.playerName}
+                    <span className="text-muted-foreground">{getRoleSuffix(b.playerId, captainId, wicketKeeperId)}</span>
+                  </span>
                 )}
               </td>
               <td className="py-1.5 px-2 text-muted-foreground whitespace-nowrap max-w-[140px] truncate">

@@ -9,6 +9,7 @@ import type {
   AppSettings,
   CricketFormat,
 } from "@/types/cricket"
+import type { FifaPlayer, FifaMatch } from "@/types/fifa"
 
 // ─── Database ────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,8 @@ class CricketBookDB extends Dexie {
   battingStats!: EntityTable<PlayerBattingStats & { id: string }, "id">
   bowlingStats!: EntityTable<PlayerBowlingStats & { id: string }, "id">
   settings!: EntityTable<AppSettings & { id: string }, "id">
+  fifaPlayers!: EntityTable<FifaPlayer, "id">
+  fifaMatches!: EntityTable<FifaMatch, "id">
 
   constructor() {
     super("CricketBookDB")
@@ -32,6 +35,11 @@ class CricketBookDB extends Dexie {
       battingStats: "id, playerId, format, [playerId+format]",
       bowlingStats: "id, playerId, format, [playerId+format]",
       settings: "id",
+    })
+
+    this.version(2).stores({
+      fifaPlayers: "id, name, createdAt",
+      fifaMatches: "id, date, player1Id, player2Id",
     })
   }
 }
