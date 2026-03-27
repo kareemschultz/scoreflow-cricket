@@ -99,8 +99,7 @@ function NewFifaMatchPage() {
     return e
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function doSave() {
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setSaving(true)
@@ -118,6 +117,11 @@ function NewFifaMatchPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    void doSave()
   }
 
   if (!players) {
@@ -241,7 +245,7 @@ function NewFifaMatchPage() {
         </Card>
 
         <motion.div whileTap={{ scale: 0.98 }}>
-          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={saving}>
+          <Button type="submit" onClick={doSave} className="w-full h-12 text-base font-semibold" disabled={saving}>
             {saving ? "Saving…" : "Save Match"}
           </Button>
         </motion.div>

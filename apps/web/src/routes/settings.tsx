@@ -197,7 +197,7 @@ function SettingsPage() {
             <Select
               value={settings.defaultFormat}
               onValueChange={(v) =>
-                updateSetting("defaultFormat", v as CricketFormat)
+                v && updateSetting("defaultFormat", v as CricketFormat)
               }
             >
               <SelectTrigger>

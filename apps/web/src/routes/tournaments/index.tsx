@@ -148,7 +148,7 @@ function NewTournamentDialog({ open, onClose }: { open: boolean; onClose: () => 
           </div>
           <div className="space-y-1.5">
             <Label>Tournament format</Label>
-            <Select value={tournamentFormat} onValueChange={(v) => setTournamentFormat(v as TournamentFormat)}>
+            <Select value={tournamentFormat} onValueChange={(v) => v && setTournamentFormat(v as TournamentFormat)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -161,7 +161,7 @@ function NewTournamentDialog({ open, onClose }: { open: boolean; onClose: () => 
           </div>
           <div className="space-y-1.5">
             <Label>Match format</Label>
-            <Select value={matchFormat} onValueChange={(v) => setMatchFormat(v as CricketFormat)}>
+            <Select value={matchFormat} onValueChange={(v) => v && setMatchFormat(v as CricketFormat)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
