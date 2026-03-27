@@ -2,7 +2,7 @@ import { useState } from "react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { format } from "date-fns"
-import { ArrowLeft, Minus, Plus } from "lucide-react"
+import { ArrowLeft, Minus, Plus, AlertCircle } from "lucide-react"
 import { motion } from "framer-motion"
 import { nanoid } from "nanoid"
 import { db } from "@/db/index"
@@ -88,6 +88,7 @@ function NewFifaMatchPage() {
   const [notes, setNotes] = useState("")
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const playerMap = new Map((players ?? []).map((p) => [p.id, p]))
 
@@ -103,6 +104,7 @@ function NewFifaMatchPage() {
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setSaving(true)
+    setSaveError(null)
     try {
       await db.fifaMatches.add({
         id: nanoid(),
@@ -114,6 +116,8 @@ function NewFifaMatchPage() {
         notes: notes.trim() || undefined,
       })
       navigate({ to: "/fifa" })
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Failed to save match. Please try again.")
     } finally {
       setSaving(false)
     }
@@ -283,6 +287,13 @@ function NewFifaMatchPage() {
             </div>
           </CardContent>
         </Card>
+
+        {saveError && (
+          <div className="flex items-start gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2">
+            <AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
+            <p className="text-xs text-destructive">{saveError}</p>
+          </div>
+        )}
 
         <motion.div whileTap={{ scale: 0.98 }}>
           <Button type="submit" onClick={doSave} className="w-full h-12 text-base font-semibold" disabled={saving}>

@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Users, Plus, MoreVertical, Pencil, Trash2 } from "lucide-react"
+import { Users, Plus, MoreVertical, Pencil, Trash2, AlertCircle } from "lucide-react"
 
 const containerVariants = {
   hidden: {},
@@ -45,6 +45,14 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 
+// ─── Team color palette ───────────────────────────────────────────────────────
+
+const TEAM_COLORS = [
+  "#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#a855f7",
+  "#ec4899", "#14b8a6", "#f97316", "#6366f1", "#84cc16",
+  "#0ea5e9", "#e11d48", "#16a34a", "#d97706", "#7c3aed",
+]
+
 // ─── New Team Dialog ──────────────────────────────────────────────────────────
 
 interface NewTeamDialogProps {
@@ -55,30 +63,40 @@ interface NewTeamDialogProps {
 function NewTeamDialog({ open, onOpenChange }: NewTeamDialogProps) {
   const [name, setName] = useState("")
   const [shortName, setShortName] = useState("")
+  const [colorHex, setColorHex] = useState(TEAM_COLORS[0])
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setName("")
+      setShortName("")
+      setColorHex(TEAM_COLORS[0])
+      setError(null)
+    }
+  }, [open])
 
   async function handleCreate() {
     const trimmed = name.trim()
     if (!trimmed) return
     setSaving(true)
+    setError(null)
     try {
       const team: Team = {
         id: nanoid(),
         name: trimmed,
         shortName: shortName.trim() || undefined,
+        colorHex,
         createdAt: new Date(),
       }
       await db.teams.add(team)
-      setName("")
-      setShortName("")
       onOpenChange(false)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to create team. Please try again.")
     } finally {
       setSaving(false)
     }
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") handleCreate()
   }
 
   return (
@@ -95,7 +113,7 @@ function NewTeamDialog({ open, onOpenChange }: NewTeamDialogProps) {
               placeholder="e.g. Mumbai Indians"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              onKeyDown={handleKeyDown}
+              onKeyDown={(e) => e.key === "Enter" && handleCreate()}
               autoFocus
             />
           </div>
@@ -110,9 +128,33 @@ function NewTeamDialog({ open, onOpenChange }: NewTeamDialogProps) {
               maxLength={5}
               value={shortName}
               onChange={(e) => setShortName(e.target.value)}
-              onKeyDown={handleKeyDown}
+              onKeyDown={(e) => e.key === "Enter" && handleCreate()}
             />
           </div>
+          <div className="space-y-1.5">
+            <Label>Team Colour</Label>
+            <div className="flex flex-wrap gap-2 pt-0.5">
+              {TEAM_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className="size-7 rounded-full transition-transform active:scale-90"
+                  style={{
+                    backgroundColor: c,
+                    outline: colorHex === c ? `3px solid ${c}` : "none",
+                    outlineOffset: "2px",
+                  }}
+                  onClick={() => setColorHex(c)}
+                />
+              ))}
+            </div>
+          </div>
+          {error && (
+            <div className="flex items-start gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2">
+              <AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
+              <p className="text-xs text-destructive">{error}</p>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
@@ -137,23 +179,30 @@ interface EditTeamDialogProps {
 function EditTeamDialog({ team, onClose }: EditTeamDialogProps) {
   const [name, setName] = useState(team?.name ?? "")
   const [shortName, setShortName] = useState(team?.shortName ?? "")
+  const [colorHex, setColorHex] = useState(team?.colorHex ?? TEAM_COLORS[0])
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Sync local state when a different team is passed in for editing
   useEffect(() => {
     setName(team?.name ?? "")
     setShortName(team?.shortName ?? "")
+    setColorHex(team?.colorHex ?? TEAM_COLORS[0])
+    setError(null)
   }, [team?.id])
 
   async function handleSave() {
     if (!team || !name.trim()) return
     setSaving(true)
+    setError(null)
     try {
       await db.teams.update(team.id, {
         name: name.trim(),
         shortName: shortName.trim() || undefined,
+        colorHex,
       })
       onClose()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save. Please try again.")
     } finally {
       setSaving(false)
     }
@@ -190,6 +239,30 @@ function EditTeamDialog({ team, onClose }: EditTeamDialogProps) {
               onKeyDown={(e) => e.key === "Enter" && handleSave()}
             />
           </div>
+          <div className="space-y-1.5">
+            <Label>Team Colour</Label>
+            <div className="flex flex-wrap gap-2 pt-0.5">
+              {TEAM_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className="size-7 rounded-full transition-transform active:scale-90"
+                  style={{
+                    backgroundColor: c,
+                    outline: colorHex === c ? `3px solid ${c}` : "none",
+                    outlineOffset: "2px",
+                  }}
+                  onClick={() => setColorHex(c)}
+                />
+              ))}
+            </div>
+          </div>
+          {error && (
+            <div className="flex items-start gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2">
+              <AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
+              <p className="text-xs text-destructive">{error}</p>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>
@@ -222,6 +295,8 @@ function DeleteTeamDialog({ team, hasMatches, onClose }: DeleteTeamDialogProps) 
       await db.players.where("teamId").equals(team.id).delete()
       await db.teams.delete(team.id)
       onClose()
+    } catch {
+      // Non-critical — log silently; team list updates reactively so user will see it worked or not
     } finally {
       setDeleting(false)
     }

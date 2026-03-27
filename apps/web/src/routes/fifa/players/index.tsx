@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { Plus, Trash2, Pencil, ChevronRight } from "lucide-react"
+import { Plus, Trash2, Pencil, ChevronRight, AlertCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { nanoid } from "nanoid"
 import { db } from "@/db/index"
@@ -54,18 +54,21 @@ function AddEditPlayerDialog({
   const [name, setName] = useState(editPlayer?.name ?? "")
   const [color, setColor] = useState(editPlayer?.colorHex ?? PRESET_COLORS[0])
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen) onClose()
+    if (!isOpen) { onClose(); setError(null) }
     else {
       setName(editPlayer?.name ?? "")
       setColor(editPlayer?.colorHex ?? PRESET_COLORS[0])
+      setError(null)
     }
   }
 
   async function handleSave() {
     if (!name.trim()) return
     setSaving(true)
+    setError(null)
     try {
       if (editPlayer) {
         await db.fifaPlayers.update(editPlayer.id, { name: name.trim(), colorHex: color })
@@ -73,6 +76,8 @@ function AddEditPlayerDialog({
         await db.fifaPlayers.add({ id: nanoid(), name: name.trim(), colorHex: color, createdAt: new Date() })
       }
       onClose()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save player. Please try again.")
     } finally {
       setSaving(false)
     }
@@ -127,6 +132,13 @@ function AddEditPlayerDialog({
             </div>
             <span className="text-sm font-medium">{name || "Preview"}</span>
           </div>
+
+          {error && (
+            <div className="flex items-start gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2">
+              <AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
+              <p className="text-xs text-destructive">{error}</p>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

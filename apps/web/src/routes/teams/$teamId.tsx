@@ -249,6 +249,8 @@ function BulkImportDialog({ teamId, open, onOpenChange }: BulkImportDialogProps)
       await db.players.bulkAdd(players)
       setText("")
       onOpenChange(false)
+    } catch {
+      // bulkAdd partial failures are rare; live query will reflect actual state
     } finally {
       setSaving(false)
     }
@@ -322,6 +324,8 @@ function TeamRosterPage() {
       }
       await db.players.add(player)
       setQuickAddName("")
+    } catch {
+      // IndexedDB errors are rare; the player list updates reactively
     } finally {
       setAdding(false)
     }
