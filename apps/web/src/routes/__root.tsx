@@ -1,5 +1,5 @@
 import { createRootRoute, Link, Outlet, useRouterState } from "@tanstack/react-router"
-import { Home, Activity, Clock, BarChart2, Users, Sword, Grid3x3, X, Download } from "lucide-react"
+import { Home, Activity, Clock, BarChart2, Users, Sword, Grid3x3, X, Download, Dice5, Spade } from "lucide-react"
 import { useLiveQuery } from "dexie-react-hooks"
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -23,16 +23,32 @@ const FIFA_NAV = [
   { to: "/fifa/players", label: "Players", icon: Users, exact: false },
 ] as const
 
+const DOMINOES_NAV = [
+  { to: "/dominoes", label: "Home", icon: Home, exact: true },
+  { to: "/dominoes/matches", label: "Matches", icon: Dice5, exact: false },
+  { to: "/dominoes/teams", label: "Teams", icon: Users, exact: false },
+] as const
+
+const TRUMP_NAV = [
+  { to: "/trump", label: "Home", icon: Home, exact: true },
+  { to: "/trump/matches", label: "Matches", icon: Spade, exact: false },
+  { to: "/trump/teams", label: "Teams", icon: Users, exact: false },
+] as const
+
 // ─── Sports Menu ──────────────────────────────────────────────────────────────
 
 const SPORTS = [
-  { id: "cricket", label: "Cricket", emoji: "🏏", path: "/" },
+  { id: "cricket", label: "Cricket", emoji: "🏐", path: "/" },
   { id: "football", label: "Football", emoji: "⚽", path: "/fifa" },
-  { id: "volleyball", label: "Volleyball", emoji: "🏐", path: null }, // coming soon
+  { id: "dominoes", label: "Dominoes", emoji: "🁣", path: "/dominoes" },
+  { id: "trump", label: "Trump", emoji: "♠", path: "/trump" },
 ] as const
 
 function SportsMenu({ currentPath, onClose }: { currentPath: string; onClose: () => void }) {
-  const activeSport = currentPath.startsWith("/fifa") ? "football" : "cricket"
+  const activeSport = currentPath.startsWith("/fifa") ? "football"
+    : currentPath.startsWith("/dominoes") ? "dominoes"
+    : currentPath.startsWith("/trump") ? "trump"
+    : "cricket"
   return (
     <motion.div
       className="absolute bottom-full right-0 mb-2 mr-1 w-44 bg-background border border-border rounded-2xl shadow-xl overflow-hidden"
@@ -45,19 +61,7 @@ function SportsMenu({ currentPath, onClose }: { currentPath: string; onClose: ()
         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 pt-1 pb-1.5">Switch Sport</p>
         {SPORTS.map((sport) => {
           const isActive = sport.id === activeSport
-          const isSoon = sport.path === null
-          return isSoon ? (
-            <div
-              key={sport.id}
-              className="flex items-center gap-2.5 px-2 py-2.5 rounded-xl opacity-40 cursor-not-allowed"
-            >
-              <span className="text-lg leading-none">{sport.emoji}</span>
-              <div>
-                <p className="text-sm font-medium">{sport.label}</p>
-                <p className="text-[10px] text-muted-foreground">Coming soon</p>
-              </div>
-            </div>
-          ) : (
+          return (
             <Link
               key={sport.id}
               to={sport.path}
@@ -86,6 +90,8 @@ function BottomNav() {
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
   const isFifaMode = currentPath.startsWith("/fifa")
+  const isDominoesMode = currentPath.startsWith("/dominoes")
+  const isTrumpMode = currentPath.startsWith("/trump")
   const [sportsOpen, setSportsOpen] = useState(false)
 
   const liveMatch = useLiveQuery(() =>
@@ -97,7 +103,7 @@ function BottomNav() {
     return currentPath.startsWith(to)
   }
 
-  const navItems = isFifaMode ? FIFA_NAV : CRICKET_NAV
+  const navItems = isFifaMode ? FIFA_NAV : isDominoesMode ? DOMINOES_NAV : isTrumpMode ? TRUMP_NAV : CRICKET_NAV
 
   return (
     <nav
@@ -123,7 +129,7 @@ function BottomNav() {
       </AnimatePresence>
 
       <div className="flex items-stretch">
-        {(navItems as typeof CRICKET_NAV | typeof FIFA_NAV).map(({ to, label, icon: Icon, exact }: { to: string; label: string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; exact: boolean }) => {
+        {(navItems as typeof CRICKET_NAV | typeof FIFA_NAV | typeof DOMINOES_NAV | typeof TRUMP_NAV).map(({ to, label, icon: Icon, exact }: { to: string; label: string; icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; exact: boolean }) => {
           const active = isActive(to, exact)
           const isScore = to === "/scoring"
           const hasLive = isScore && !!liveMatch
