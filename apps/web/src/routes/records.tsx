@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { format } from "date-fns"
+import { formatMatchDateShort } from "@/lib/date-utils"
 import { motion } from "framer-motion"
 import { Trophy, TrendingUp, Zap, Shield, Star, Target } from "lucide-react"
 
@@ -390,7 +390,7 @@ function RecordsPage() {
                   sub={records.highestTeamScore?.teamName}
                   meta={
                     records.highestTeamScore
-                      ? `vs ${records.highestTeamScore.opponent} · ${format(records.highestTeamScore.matchDate, "d MMM yyyy")}`
+                      ? `vs ${records.highestTeamScore.opponent} · ${formatMatchDateShort(records.highestTeamScore.matchDate)}`
                       : undefined
                   }
                   format={records.highestTeamScore?.format}
@@ -407,7 +407,7 @@ function RecordsPage() {
                   sub={records.lowestTeamScore?.teamName}
                   meta={
                     records.lowestTeamScore
-                      ? `vs ${records.lowestTeamScore.opponent} · ${format(records.lowestTeamScore.matchDate, "d MMM yyyy")}`
+                      ? `vs ${records.lowestTeamScore.opponent} · ${formatMatchDateShort(records.lowestTeamScore.matchDate)}`
                       : undefined
                   }
                   format={records.lowestTeamScore?.format}
@@ -438,7 +438,7 @@ function RecordsPage() {
                   sub={records.highestIndividualScore?.playerName}
                   meta={
                     records.highestIndividualScore
-                      ? `vs ${records.highestIndividualScore.opponent} · ${format(records.highestIndividualScore.matchDate, "d MMM yyyy")}`
+                      ? `vs ${records.highestIndividualScore.opponent} · ${formatMatchDateShort(records.highestIndividualScore.matchDate)}`
                       : undefined
                   }
                   format={records.highestIndividualScore?.format}
@@ -455,7 +455,7 @@ function RecordsPage() {
                   sub={records.bestBowlingFigures?.playerName}
                   meta={
                     records.bestBowlingFigures
-                      ? `vs ${records.bestBowlingFigures.opponent} · ${format(records.bestBowlingFigures.matchDate, "d MMM yyyy")}`
+                      ? `vs ${records.bestBowlingFigures.opponent} · ${formatMatchDateShort(records.bestBowlingFigures.matchDate)}`
                       : undefined
                   }
                   format={records.bestBowlingFigures?.format}

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { format } from "date-fns"
+import { toISODate } from "@/lib/date-utils"
 import { ArrowLeft, Calendar, Play, Trophy, Users } from "lucide-react"
 import { db } from "@/db/index"
 import {
@@ -315,7 +315,7 @@ function DominoTournamentDetailPage() {
                     : undefined
                   const statusLabel = fixtureStatusLabel(fixture)
                   const scheduledDate = fixture.scheduledDate
-                    ? format(new Date(fixture.scheduledDate), "yyyy-MM-dd")
+                    ? toISODate(fixture.scheduledDate)
                     : ""
                   return (
                     <div key={fixture.id} className="rounded-lg border border-border/60 bg-card/50 p-3 space-y-2">

@@ -9,6 +9,7 @@ import {
   X,
   Users,
   ClipboardList,
+  BarChart2,
 } from "lucide-react"
 import { nanoid } from "nanoid"
 import { db } from "@/db/index"
@@ -140,6 +141,8 @@ interface PlayerRowProps {
 }
 
 function PlayerRow({ player, onDelete }: PlayerRowProps) {
+  const navigate = useNavigate()
+
   async function handleNameSave(name: string) {
     await db.players.update(player.id, { name })
   }
@@ -206,6 +209,17 @@ function PlayerRow({ player, onDelete }: PlayerRowProps) {
           <SelectItem value="left">LHB</SelectItem>
         </SelectContent>
       </Select>
+
+      {/* Stats */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-8 text-muted-foreground hover:text-primary shrink-0"
+        onClick={() => navigate({ to: "/stats/$playerId", params: { playerId: player.id } })}
+      >
+        <BarChart2 className="size-4" />
+        <span className="sr-only">View stats</span>
+      </Button>
 
       {/* Delete */}
       <Button

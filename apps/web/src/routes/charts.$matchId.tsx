@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { useState } from "react"
-import { format } from "date-fns"
+import { formatMatchDateShort } from "@/lib/date-utils"
 import { ArrowLeft, BarChart2, TrendingUp, Activity } from "lucide-react"
 import { motion } from "framer-motion"
 import { db } from "@/db/index"
@@ -224,7 +224,7 @@ function ChartsPage() {
               {match.team1Name} vs {match.team2Name}
             </h1>
             <p className="text-[10px] text-muted-foreground">
-              {format(new Date(match.date), "d MMM yyyy")} — Charts
+              {formatMatchDateShort(match.date)} — Charts
             </p>
           </div>
           <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">

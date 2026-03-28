@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { format } from "date-fns"
+import { formatMatchDateShort } from "@/lib/date-utils"
 import { ArrowLeft } from "lucide-react"
 import { motion } from "framer-motion"
 import { db } from "@/db/index"
@@ -274,7 +274,7 @@ function FifaPlayerProfilePage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <FormPill result={result} />
-                          <span className="text-[10px] text-muted-foreground">{format(new Date(m.date), "d MMM")}</span>
+                          <span className="text-[10px] text-muted-foreground">{formatMatchDateShort(m.date)}</span>
                         </div>
                       </div>
                     </CardContent>

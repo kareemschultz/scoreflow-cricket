@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { format } from "date-fns"
+import { todayISO } from "@/lib/date-utils"
 import { ArrowLeft, Plus, Minus, AlertCircle, Trophy } from "lucide-react"
 import { motion } from "framer-motion"
 import { nanoid } from "nanoid"
@@ -72,7 +72,7 @@ function NewTrumpMatchPage() {
   const [team1Id, setTeam1Id] = useState<string | null>(null)
   const [team2Id, setTeam2Id] = useState<string | null>(null)
   const [targetScore, setTargetScore] = useState(14)
-  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"))
+  const [date, setDate] = useState(todayISO())
   const [notes, setNotes] = useState("")
 
   const [hands, setHands] = useState<TrumpHand[]>([])
@@ -652,7 +652,7 @@ function NewTrumpMatchPage() {
                 type="date"
                 value={date}
                 onChange={(event) => setDate(event.target.value)}
-                max={format(new Date(), "yyyy-MM-dd")}
+                max={todayISO()}
               />
             </div>
             <div className="space-y-1.5">

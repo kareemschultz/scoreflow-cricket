@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { format } from "date-fns"
+import { formatMatchDateShort } from "@/lib/date-utils"
 import { Plus, Trophy } from "lucide-react"
 import { motion } from "framer-motion"
 import { nanoid } from "nanoid"
@@ -65,7 +65,7 @@ function TournamentCard({ tournament }: { tournament: DominoTournament }) {
                 {completed}/{tournament.fixtures.length} fixtures complete
               </p>
               <p className="text-[10px] text-muted-foreground mt-1">
-                {format(new Date(tournament.createdAt), "d MMM yyyy")}
+                {formatMatchDateShort(tournament.createdAt)}
               </p>
             </div>
             <span className={`text-[10px] border rounded-full px-2 py-0.5 ${statusBadgeClass(tournament.status)}`}>

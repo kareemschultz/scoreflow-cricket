@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion"
 import { createFileRoute, useParams, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { format } from "date-fns"
+import { formatMatchDateShort } from "@/lib/date-utils"
 import {
   Share2,
   Copy,
@@ -260,7 +260,7 @@ function buildTextScorecard(match: Match): string {
   lines.push("=====================")
   lines.push(`${match.team1Name} vs ${match.team2Name}`)
   lines.push(
-    `${match.format} — ${format(new Date(match.date), "d MMM yyyy")}${match.venue ? ` — ${match.venue}` : ""}`
+    `${match.format} — ${formatMatchDateShort(match.date)}${match.venue ? ` — ${match.venue}` : ""}`
   )
   lines.push("")
 
@@ -520,7 +520,7 @@ function ScorecardPage() {
               {match.team1Name} vs {match.team2Name}
             </h1>
             <p className="text-[10px] text-muted-foreground">
-              {match.format} — {format(new Date(match.date), "d MMM yyyy")}
+              {match.format} — {formatMatchDateShort(match.date)}
               {match.venue ? ` — ${match.venue}` : ""}
             </p>
           </div>

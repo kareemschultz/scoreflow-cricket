@@ -228,6 +228,20 @@ function ScoringPage({ match }: { match: Match }) {
   const totalExpectedInnings = (rules.inningsPerSide ?? 1) * 2
   const isLastInnings = currentInningsIndex >= totalExpectedInnings - 1
 
+  // Auto-open the correct overlay whenever the innings ends. This is the
+  // reliable path — it fires on the final ball AND on page-reload recovery
+  // where checkPostBall() never runs (because showInningsEndDialog resets to
+  // false on every fresh mount). Setting state to the same value is a no-op,
+  // so calling this alongside checkPostBall is safe.
+  useEffect(() => {
+    if (!inningsIsOver) return
+    if (!isLastInnings) {
+      setShowInningsEndDialog(true)
+    } else {
+      setShowMatchEndDialog(true)
+    }
+  }, [inningsIsOver, isLastInnings])
+
   // ─────────────────────────────────────────────────────────────────────────
   // Guard: need striker + bowler to score, and innings must be live
   // ─────────────────────────────────────────────────────────────────────────

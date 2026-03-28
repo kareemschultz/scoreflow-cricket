@@ -49,6 +49,67 @@ function mkBall(
   }
 }
 
+// ─── Full ball log generator ──────────────────────────────────────────────────
+
+interface OverSpec {
+  bowlerId: string
+  ballRuns: number[]  // 6 values; 0 on the wicket ball
+  wicketBall: number  // index of wicket ball (-1 = no wicket)
+}
+
+function buildInningsBalls(
+  inningsIdx: number,
+  overSpecs: OverSpec[],
+  batQueue: string[],  // batting order — opener1, opener2, #3, #4 …
+): Ball[] {
+  const result: Ball[] = []
+  const queue = [...batQueue]
+  let sIdx = 0       // striker index in queue
+  let nsIdx = 1      // non-striker index
+  let nextIn = 2     // next batsman to come in on wicket
+  let delivery = 0
+
+  for (let overNum = 0; overNum < overSpecs.length; overNum++) {
+    const { bowlerId, ballRuns, wicketBall } = overSpecs[overNum]
+
+    for (let bi = 0; bi < 6; bi++) {
+      const runs = ballRuns[bi]
+      const isW = bi === wicketBall
+
+      const ball = mkBall({
+        inningsIndex: inningsIdx,
+        overNumber: overNum,
+        ballInOver: bi,
+        deliveryNumber: delivery++,
+        batsmanId: queue[sIdx],
+        bowlerId,
+        runs,
+        batsmanRuns: runs,
+        isLegal: true,
+        powerplay: overNum < 6,
+      })
+
+      if (isW) {
+        ball.isWicket = true
+        ball.dismissalType = "caught"
+        ball.dismissedPlayerId = queue[sIdx]
+        ball.dismissalText = "c & b (demo)"
+        ball.runs = 0
+        ball.batsmanRuns = 0
+        if (nextIn < queue.length) queue[sIdx] = queue[nextIn++]
+      } else if (runs % 2 === 1) {
+        ;[sIdx, nsIdx] = [nsIdx, sIdx]  // odd runs = strike rotates
+      }
+
+      result.push(ball)
+    }
+    // End of over: non-striker faces next
+    ;[sIdx, nsIdx] = [nsIdx, sIdx]
+  }
+
+  return result
+}
+
 export async function seedDemoMatch(): Promise<string | null> {
   // Check if demo data already exists
   const existing = await db.teams.where("name").equals("Royals").first()
@@ -110,65 +171,39 @@ export async function seedDemoMatch(): Promise<string | null> {
   const matchId = uid()
   const rules = DEFAULT_RULES.T20
 
-  // ── Ball Log helpers ───────────────────────────────────────────────────────
-  // We'll create 2 overs (12 balls) of ball-by-ball data per innings
-  // Innings 1 (Royals bat): 167/6 in 20 overs
-  // Innings 2 (Warriors bat): 142/8 in 20 overs
+  // ── Ball Log — full 20 overs per innings ──────────────────────────────────
+  // Each bowler bowls overs [n, n+5, n+10, n+15] — no consecutive overs
 
-  // Innings 1 ball log: over 0 and over 1
-  const i1balls: Ball[] = []
-  const bowlerId_w1 = wp[0].id // Sanjay
-  const bowlerId_w2 = wp[1].id // Darren
-
-  // Over 0 bowled by Sanjay: 1,4,0,1,6,2 → 14 runs
-  const over0runs = [1, 4, 0, 1, 6, 2]
-  over0runs.forEach((r, idx) => {
-    i1balls.push(mkBall({
-      inningsIndex: 0,
-      overNumber: 0,
-      ballInOver: idx,
-      deliveryNumber: idx,
-      batsmanId: rp[0].id,
-      bowlerId: bowlerId_w1,
-      runs: r,
-      batsmanRuns: r,
-      isLegal: true,
-      powerplay: true,
-    }))
-  })
-
-  // Over 1 bowled by Darren: 0,2,W,1,4,1 → 8 runs, 1 wicket (rp[0] out bowled)
-  const over1data: Array<{ runs: number; isW: boolean; batsman: string }> = [
-    { runs: 0, isW: false, batsman: rp[0].id },
-    { runs: 2, isW: false, batsman: rp[0].id },
-    { runs: 0, isW: true,  batsman: rp[0].id },
-    { runs: 1, isW: false, batsman: rp[1].id },
-    { runs: 4, isW: false, batsman: rp[1].id },
-    { runs: 1, isW: false, batsman: rp[1].id },
+  // Innings 1 (Royals bat, 167/6): 5 Warriors bowlers × 4 overs each
+  // Bowler rotation: over % 5 → wp[0..4]
+  const i1BowlerIds = [wp[0].id,wp[1].id,wp[2].id,wp[3].id,wp[4].id]
+  const i1OverSpecs: OverSpec[] = [
+    // Powerplay overs 0-5 (total 53)
+    { bowlerId: i1BowlerIds[0], ballRuns: [0,1,4,2,1,1], wicketBall: -1 }, // 9
+    { bowlerId: i1BowlerIds[1], ballRuns: [1,6,0,1,2,2], wicketBall: -1 }, // 12
+    { bowlerId: i1BowlerIds[2], ballRuns: [0,2,1,0,2,2], wicketBall: -1 }, // 7
+    { bowlerId: i1BowlerIds[3], ballRuns: [2,0,4,0,1,1], wicketBall: -1 }, // 8
+    { bowlerId: i1BowlerIds[4], ballRuns: [0,1,2,0,4,2], wicketBall: -1 }, // 9
+    { bowlerId: i1BowlerIds[0], ballRuns: [0,4,0,1,2,1], wicketBall: -1 }, // 8
+    // Middle overs 6-14 (total 66)
+    { bowlerId: i1BowlerIds[1], ballRuns: [2,0,1,1,2,1], wicketBall: -1 }, // 7
+    { bowlerId: i1BowlerIds[2], ballRuns: [1,0,0,0,2,2], wicketBall:  2 }, // 5 W
+    { bowlerId: i1BowlerIds[3], ballRuns: [0,2,0,2,1,2], wicketBall: -1 }, // 7
+    { bowlerId: i1BowlerIds[4], ballRuns: [0,4,0,2,1,1], wicketBall: -1 }, // 8
+    { bowlerId: i1BowlerIds[0], ballRuns: [0,2,4,0,1,1], wicketBall: -1 }, // 8
+    { bowlerId: i1BowlerIds[1], ballRuns: [0,2,0,2,1,1], wicketBall: -1 }, // 6
+    { bowlerId: i1BowlerIds[2], ballRuns: [1,0,2,0,2,2], wicketBall:  1 }, // 7 W
+    { bowlerId: i1BowlerIds[3], ballRuns: [2,0,4,0,1,2], wicketBall: -1 }, // 9
+    { bowlerId: i1BowlerIds[4], ballRuns: [1,2,0,0,2,4], wicketBall:  3 }, // 9 W
+    // Death overs 15-19 (total 48)
+    { bowlerId: i1BowlerIds[0], ballRuns: [4,1,0,1,2,1], wicketBall:  2 }, // 9 W
+    { bowlerId: i1BowlerIds[1], ballRuns: [2,0,4,0,1,4], wicketBall: -1 }, // 11
+    { bowlerId: i1BowlerIds[2], ballRuns: [0,4,1,2,0,1], wicketBall:  4 }, // 8 W
+    { bowlerId: i1BowlerIds[3], ballRuns: [1,2,4,0,2,1], wicketBall:  3 }, // 10 W
+    { bowlerId: i1BowlerIds[4], ballRuns: [2,1,4,0,2,1], wicketBall: -1 }, // 10
   ]
-  over1data.forEach((d, idx) => {
-    const ball = mkBall({
-      inningsIndex: 0,
-      overNumber: 1,
-      ballInOver: idx,
-      deliveryNumber: 6 + idx,
-      batsmanId: d.batsman,
-      bowlerId: bowlerId_w2,
-      runs: d.runs,
-      batsmanRuns: d.runs,
-      isLegal: true,
-      powerplay: true,
-    })
-    if (d.isW) {
-      ball.isWicket = true
-      ball.dismissalType = "bowled"
-      ball.dismissedPlayerId = rp[0].id
-      ball.dismissalText = `b ${wp[1].name}`
-      ball.runs = 0
-      ball.batsmanRuns = 0
-    }
-    i1balls.push(ball)
-  })
+  // Batting order for innings 1: rp[0]..rp[10]
+  const i1balls = buildInningsBalls(0, i1OverSpecs, rp.map(p => p.id))
 
   // ── Innings 1 batting card ────────────────────────────────────────────────
   const innings1BattingCard: BatsmanEntry[] = [
@@ -200,60 +235,36 @@ export async function seedDemoMatch(): Promise<string | null> {
     { wicketNumber: 6, score: 160, overs: "19.3", playerId: rp[5].id, playerName: rp[5].name, dismissalText: innings1BattingCard[5].dismissalText },
   ]
 
-  // ── Innings 2 ball log ─────────────────────────────────────────────────────
-  const i2balls: Ball[] = []
-  const bowlerId_r1 = rp[8].id // Clive Hooper
-  const bowlerId_r2 = rp[9].id // Ravi Seepersad
-
-  // Over 0 bowled by Clive: 2,0,4,1,0,3 → 10 runs
-  const i2over0runs = [2, 0, 4, 1, 0, 3]
-  i2over0runs.forEach((r, idx) => {
-    i2balls.push(mkBall({
-      inningsIndex: 1,
-      overNumber: 0,
-      ballInOver: idx,
-      deliveryNumber: idx,
-      batsmanId: wp[0].id,
-      bowlerId: bowlerId_r1,
-      runs: r,
-      batsmanRuns: r,
-      isLegal: true,
-      powerplay: true,
-    }))
-  })
-
-  // Over 1 bowled by Ravi: 1,W,0,6,2,1 → 10 runs, 1 wicket
-  const i2over1data: Array<{ runs: number; isW: boolean; batsman: string }> = [
-    { runs: 1, isW: false, batsman: wp[0].id },
-    { runs: 0, isW: true,  batsman: wp[0].id },
-    { runs: 0, isW: false, batsman: wp[1].id },
-    { runs: 6, isW: false, batsman: wp[1].id },
-    { runs: 2, isW: false, batsman: wp[1].id },
-    { runs: 1, isW: false, batsman: wp[1].id },
+  // Innings 2 (Warriors bat, 142/8): 5 Royals bowlers × 4 overs each
+  // Bowler rotation: [rp8,rp9,rp10,rp7,rp6] cycling by over % 5
+  const i2BowlerIds = [rp[8].id,rp[9].id,rp[10].id,rp[7].id,rp[6].id]
+  const i2OverSpecs: OverSpec[] = [
+    // Powerplay overs 0-5 (total 42)
+    { bowlerId: i2BowlerIds[0], ballRuns: [2,0,1,0,4,1], wicketBall: -1 }, // 8
+    { bowlerId: i2BowlerIds[1], ballRuns: [0,1,0,2,0,4], wicketBall: -1 }, // 7
+    { bowlerId: i2BowlerIds[2], ballRuns: [1,2,0,1,0,2], wicketBall: -1 }, // 6
+    { bowlerId: i2BowlerIds[3], ballRuns: [0,0,4,0,1,2], wicketBall:  3 }, // 7 W
+    { bowlerId: i2BowlerIds[4], ballRuns: [2,0,1,0,2,1], wicketBall: -1 }, // 6
+    { bowlerId: i2BowlerIds[0], ballRuns: [0,2,0,4,0,2], wicketBall: -1 }, // 8
+    // Middle overs 6-14 (total 62)
+    { bowlerId: i2BowlerIds[1], ballRuns: [2,0,2,1,2,1], wicketBall: -1 }, // 8
+    { bowlerId: i2BowlerIds[2], ballRuns: [1,0,0,2,2,2], wicketBall:  2 }, // 7 W
+    { bowlerId: i2BowlerIds[3], ballRuns: [0,1,2,0,2,0], wicketBall: -1 }, // 5
+    { bowlerId: i2BowlerIds[4], ballRuns: [2,0,4,0,2,1], wicketBall: -1 }, // 9
+    { bowlerId: i2BowlerIds[0], ballRuns: [0,0,2,4,0,1], wicketBall:  1 }, // 7 W
+    { bowlerId: i2BowlerIds[1], ballRuns: [2,0,2,0,2,2], wicketBall: -1 }, // 8
+    { bowlerId: i2BowlerIds[2], ballRuns: [0,1,0,0,2,4], wicketBall:  3 }, // 7 W
+    { bowlerId: i2BowlerIds[3], ballRuns: [2,0,0,0,1,1], wicketBall: -1 }, // 4
+    { bowlerId: i2BowlerIds[4], ballRuns: [1,2,0,2,0,2], wicketBall: -1 }, // 7
+    // Death overs 15-19 (total 38)
+    { bowlerId: i2BowlerIds[0], ballRuns: [0,0,4,2,0,3], wicketBall:  1 }, // 9 W
+    { bowlerId: i2BowlerIds[1], ballRuns: [2,0,0,4,1,2], wicketBall:  2 }, // 9 W
+    { bowlerId: i2BowlerIds[2], ballRuns: [1,2,0,0,4,1], wicketBall:  3 }, // 8 W
+    { bowlerId: i2BowlerIds[3], ballRuns: [0,2,0,4,0,1], wicketBall:  0 }, // 7 W
+    { bowlerId: i2BowlerIds[4], ballRuns: [1,1,2,0,1,0], wicketBall: -1 }, // 5
   ]
-  i2over1data.forEach((d, idx) => {
-    const ball = mkBall({
-      inningsIndex: 1,
-      overNumber: 1,
-      ballInOver: idx,
-      deliveryNumber: 6 + idx,
-      batsmanId: d.batsman,
-      bowlerId: bowlerId_r2,
-      runs: d.runs,
-      batsmanRuns: d.runs,
-      isLegal: true,
-      powerplay: true,
-    })
-    if (d.isW) {
-      ball.isWicket = true
-      ball.dismissalType = "caught"
-      ball.dismissedPlayerId = wp[0].id
-      ball.dismissalText = `c ${rp[3].name} b ${rp[9].name}`
-      ball.runs = 0
-      ball.batsmanRuns = 0
-    }
-    i2balls.push(ball)
-  })
+  // Batting order for innings 2: wp[0]..wp[10]
+  const i2balls = buildInningsBalls(1, i2OverSpecs, wp.map(p => p.id))
 
   // ── Innings 2 batting card ─────────────────────────────────────────────────
   const innings2BattingCard: BatsmanEntry[] = [

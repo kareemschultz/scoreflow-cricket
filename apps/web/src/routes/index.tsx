@@ -2,7 +2,7 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { formatDistanceToNow, format } from "date-fns"
+import { formatMatchDateRelative } from "@/lib/date-utils"
 import { Activity, Plus, Trophy, TrendingUp, Users, Zap, Settings } from "lucide-react"
 import { db } from "@/db/index"
 import type { Match } from "@/types/cricket"
@@ -159,7 +159,7 @@ function RecentMatchCard({ match }: { match: Match }) {
                 {match.format}
               </Badge>
               <span className="text-[10px] text-muted-foreground">
-                {formatDistanceToNow(new Date(match.date), { addSuffix: true })}
+                {formatMatchDateRelative(match.date)}
               </span>
             </div>
           </div>
@@ -277,7 +277,7 @@ function HomePage() {
           <div>
             <h1 className="text-lg font-bold tracking-tight">ScoreFlow</h1>
             <p className="text-xs text-muted-foreground">
-              {format(new Date(), "EEEE, d MMMM yyyy")}
+              {new Intl.DateTimeFormat("en-GY", { timeZone: "America/Guyana", weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date())}
             </p>
           </div>
           <button

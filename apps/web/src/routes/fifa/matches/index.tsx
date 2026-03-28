@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { format } from "date-fns"
+import { formatMatchDateShort } from "@/lib/date-utils"
 import { Plus } from "lucide-react"
 import { motion } from "framer-motion"
 import { db } from "@/db/index"
@@ -152,7 +152,7 @@ function FifaMatchesPage() {
                       </div>
                       <div className="flex items-center justify-between mt-1.5">
                         <span className="text-[10px] text-muted-foreground">
-                          {format(new Date(m.date), "d MMM yyyy")}
+                          {formatMatchDateShort(m.date)}
                         </span>
                         <span className={cn("text-[10px] font-semibold", (p1Wins || p2Wins) && "text-emerald-500", isDraw && "text-amber-500")}>
                           {isDraw ? "Draw" : `${p1Wins ? m.p1?.name : m.p2?.name} wins`}

@@ -2,7 +2,7 @@ import { createFileRoute, useParams, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { ArrowLeft, Trophy, Users, Plus, Calendar, ExternalLink, Play } from "lucide-react"
 import { useState } from "react"
-import { format } from "date-fns"
+import { toISODate } from "@/lib/date-utils"
 import { db } from "@/db/index"
 import type { Tournament, Team, TournamentFixture } from "@/types/cricket"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
@@ -268,7 +268,7 @@ function TournamentDetailPage() {
                   const matchResult = fixture.matchId ? fixtureMatches?.[fixture.matchId] : undefined
                   const statusLabel = fixtureStatusLabel(fixture)
                   const scheduledDateValue = fixture.scheduledDate
-                    ? format(new Date(fixture.scheduledDate), "yyyy-MM-dd")
+                    ? toISODate(fixture.scheduledDate)
                     : ""
                   const isCompleted = statusLabel === "Completed"
                   return (

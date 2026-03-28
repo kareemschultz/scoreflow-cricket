@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { format } from "date-fns"
+import { todayISO } from "@/lib/date-utils"
 import { ArrowLeft, Minus, Plus, AlertCircle } from "lucide-react"
 import { motion } from "framer-motion"
 import { nanoid } from "nanoid"
@@ -84,7 +84,7 @@ function NewFifaMatchPage() {
   const [player2Id, setPlayer2Id] = useState<string | null>(null)
   const [player1Score, setPlayer1Score] = useState(0)
   const [player2Score, setPlayer2Score] = useState(0)
-  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"))
+  const [date, setDate] = useState(todayISO())
   const [notes, setNotes] = useState("")
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -279,7 +279,7 @@ function NewFifaMatchPage() {
           <CardContent className="py-4 space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="date">Date</Label>
-              <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} max={format(new Date(), "yyyy-MM-dd")} />
+              <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} max={todayISO()} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="notes">Notes (optional)</Label>

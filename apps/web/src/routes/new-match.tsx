@@ -619,8 +619,179 @@ function Step3Toss({
 }: Step3Props) {
   const tossWonByName = tossWonBy === team1Id ? team1Name : tossWonBy === team2Id ? team2Name : null
 
+  // ── Coin toss local state ────────────────────────────────────────────────
+  const [callingTeamId, setCallingTeamId] = useState<string | null>(null)
+  const [coinCall, setCoinCall] = useState<"heads" | "tails" | null>(null)
+  const [coinResult, setCoinResult] = useState<"heads" | "tails" | null>(null)
+  const [isFlipping, setIsFlipping] = useState(false)
+  const [hasTossed, setHasTossed] = useState(false)
+
+  function handleFlipCoin() {
+    if (!coinCall || !callingTeamId || isFlipping) return
+    setIsFlipping(true)
+    setCoinResult(null)
+    const result: "heads" | "tails" = Math.random() < 0.5 ? "heads" : "tails"
+    setTimeout(() => {
+      setCoinResult(result)
+      setIsFlipping(false)
+      setHasTossed(true)
+      // Auto-select winner: caller wins if their call matched
+      const callerWins = result === coinCall
+      const winnerId = callerWins
+        ? callingTeamId
+        : callingTeamId === team1Id ? team2Id : team1Id
+      onTossWonBy(winnerId)
+    }, 1400)
+  }
+
+  function resetCoin() {
+    setCallingTeamId(null)
+    setCoinCall(null)
+    setCoinResult(null)
+    setIsFlipping(false)
+    setHasTossed(false)
+  }
+
   return (
     <div className="px-4 space-y-6">
+      {/* ── Coin Toss Section ── */}
+      <div className="space-y-3">
+        <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          Flip the Coin
+        </p>
+
+        {/* Coin display */}
+        <div className="flex flex-col items-center gap-4 py-2">
+          <motion.div
+            className={[
+              "size-20 rounded-full flex items-center justify-center font-black text-2xl border-4 shadow-lg select-none",
+              coinResult === "heads"
+                ? "bg-amber-400 border-amber-500 text-amber-900"
+                : coinResult === "tails"
+                  ? "bg-slate-300 border-slate-400 text-slate-800"
+                  : "bg-muted border-border text-muted-foreground",
+            ].join(" ")}
+            animate={
+              isFlipping
+                ? {
+                    rotateZ: [0, 180, 360, 540, 720, 900, 1080],
+                    scale: [1, 0.05, 1, 0.05, 1, 0.05, 1],
+                  }
+                : { rotateZ: 0, scale: 1 }
+            }
+            transition={
+              isFlipping
+                ? { duration: 1.4, ease: "easeInOut" }
+                : { duration: 0.2 }
+            }
+          >
+            {isFlipping
+              ? "?"
+              : coinResult === "heads"
+                ? "H"
+                : coinResult === "tails"
+                  ? "T"
+                  : "?"}
+          </motion.div>
+
+          {/* Result message */}
+          {hasTossed && coinResult && !isFlipping && (
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <p className="text-base font-bold text-primary uppercase tracking-widest">
+                {coinResult}!
+              </p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {coinCall === coinResult
+                  ? `${callingTeamId === team1Id ? team1Name : team2Name} called it — they win the toss`
+                  : `${callingTeamId === team1Id ? team2Name : team1Name} wins the toss`}
+              </p>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Who is calling */}
+        {!hasTossed && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground text-center">Who is calling?</p>
+            <div className="flex gap-2">
+              {[
+                { id: team1Id, name: team1Name },
+                { id: team2Id, name: team2Name },
+              ].map((team) => (
+                <button
+                  key={team.id}
+                  onClick={() => setCallingTeamId(team.id)}
+                  className={[
+                    "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                    callingTeamId === team.id
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-card hover:bg-muted/50 text-foreground",
+                  ].join(" ")}
+                >
+                  {team.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Heads or Tails call */}
+        {callingTeamId && !hasTossed && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground text-center">
+              {callingTeamId === team1Id ? team1Name : team2Name} calls:
+            </p>
+            <div className="flex gap-2">
+              {(["heads", "tails"] as const).map((side) => (
+                <button
+                  key={side}
+                  onClick={() => setCoinCall(side)}
+                  className={[
+                    "flex-1 rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition-colors",
+                    coinCall === side
+                      ? "border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                      : "border-border bg-card hover:bg-muted/50 text-foreground",
+                  ].join(" ")}
+                >
+                  {side}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Flip / Reset buttons */}
+        <div className="flex gap-2">
+          {!hasTossed ? (
+            <button
+              onClick={handleFlipCoin}
+              disabled={!coinCall || isFlipping}
+              className="flex-1 rounded-xl py-3 text-sm font-bold bg-primary text-primary-foreground disabled:opacity-40 disabled:pointer-events-none transition-opacity"
+            >
+              {isFlipping ? "Flipping…" : "Flip Coin →"}
+            </button>
+          ) : (
+            <button
+              onClick={resetCoin}
+              className="flex-1 rounded-xl py-3 text-sm font-medium border border-border bg-card hover:bg-muted/50 text-muted-foreground transition-colors"
+            >
+              Flip Again
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-px bg-border" />
+        <span className="text-xs text-muted-foreground px-1">or select manually</span>
+        <div className="flex-1 h-px bg-border" />
+      </div>
+
       {/* Who won the toss */}
       <div className="space-y-3">
         <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">

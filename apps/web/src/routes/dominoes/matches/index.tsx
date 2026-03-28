@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { format } from "date-fns"
+import { formatMatchDateShort } from "@/lib/date-utils"
 import { Plus } from "lucide-react"
 import { motion } from "framer-motion"
 import { useState } from "react"
@@ -209,7 +209,7 @@ function DominoMatchesPage() {
                       </div>
                       <div className="flex items-center justify-between mt-1.5">
                         <span className="text-[10px] text-muted-foreground">
-                          {format(new Date(m.date), "d MMM yyyy")} \u00b7 {m.hands.length} hands
+                          {formatMatchDateShort(m.date)} \u00b7 {m.hands.length} hands
                         </span>
                         <span className={cn("text-[10px] font-semibold text-emerald-500")}>
                           {t1Wins ? m.t1?.name : m.t2?.name} wins{isSixLove ? " (6-love!)" : ""}

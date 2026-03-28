@@ -2,7 +2,7 @@ import { motion } from "framer-motion"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { useState } from "react"
-import { format } from "date-fns"
+import { formatMatchDateShort } from "@/lib/date-utils"
 import { Trophy, Plus, ArrowRight } from "lucide-react"
 import { nanoid } from "nanoid"
 import { db } from "@/db/index"
@@ -80,7 +80,7 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
                 </p>
               )}
               <p className="text-[10px] text-muted-foreground mt-1">
-                {format(new Date(tournament.createdAt), "d MMM yyyy")}
+                {formatMatchDateShort(tournament.createdAt)}
               </p>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0">

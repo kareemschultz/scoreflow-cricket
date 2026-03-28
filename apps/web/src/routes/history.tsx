@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { formatDistanceToNow } from "date-fns"
+import { formatMatchDateRelative } from "@/lib/date-utils"
 import { Search, Clock, Trophy, Trash2 } from "lucide-react"
 import { useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -114,7 +114,7 @@ function MatchRow({ match }: { match: Match }) {
                   </Badge>
                 </div>
                 <span className="text-[10px] text-muted-foreground">
-                  {formatDistanceToNow(new Date(match.date), { addSuffix: true })}
+                  {formatMatchDateRelative(match.date)}
                 </span>
               </div>
             </div>

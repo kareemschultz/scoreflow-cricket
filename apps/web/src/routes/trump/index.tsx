@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { format } from "date-fns"
+import { formatMatchDateShort, formatLongDate } from "@/lib/date-utils"
 import { Plus, Trophy, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import { useState } from "react"
@@ -185,7 +185,7 @@ function RecentMatches() {
                     </span>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-[10px] text-muted-foreground">{format(new Date(m.date), "d MMM")}</p>
+                    <p className="text-[10px] text-muted-foreground">{formatMatchDateShort(m.date)}</p>
                     <p className="text-[10px] text-emerald-500 font-medium">
                       {winner?.name} wins{isShutout ? " (shutout!)" : ""}
                     </p>
@@ -359,7 +359,7 @@ function TrumpHomePage() {
             <h1 className="text-lg font-bold tracking-tight flex items-center gap-2">
               <span>{SUIT_SYMBOLS.spades}</span> Trump / All Fours
             </h1>
-            <p className="text-xs text-muted-foreground">{format(new Date(), "EEEE, d MMMM yyyy")}</p>
+            <p className="text-xs text-muted-foreground">{formatLongDate()}</p>
           </div>
           <motion.div whileTap={{ scale: 0.95 }}>
             <Button
