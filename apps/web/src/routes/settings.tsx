@@ -59,6 +59,9 @@ function SettingsPage() {
   }
   const [dryRunResult, setDryRunResult] = useState<DryRunResult | null>(null)
 
+  // ── Import confirmation state ──────────────────────────────────────────────
+  const [showImportConfirm, setShowImportConfirm] = useState(false)
+
   // ── Error log state (reactive via subscription) ───────────────────────────
   const [errorLog, setErrorLog] = useState<ErrorEntry[]>(() => getErrorLog())
 
@@ -102,6 +105,7 @@ function SettingsPage() {
     const payload = {
       exportedAt: new Date().toISOString(),
       version: "1.0.0",
+      schemaVersion: 1,
       teams,
       players,
       matches,
@@ -169,9 +173,18 @@ function SettingsPage() {
     )
   }
 
-  function handleImport() {
+  function handleImportDirect() {
     pickAndParseFile(
       async (data) => {
+        // Warn about schema version mismatch but don't block
+        if (data.schemaVersion !== undefined && data.schemaVersion !== 1) {
+          const proceed = window.confirm(
+            `This backup was exported with schema version ${data.schemaVersion}. ` +
+            `Current app uses version 1. Rows may not import correctly. Continue?`
+          )
+          if (!proceed) return
+        }
+
         // Validate each table's data is an array of objects before writing
         const tables = ["teams", "players", "matches", "tournaments", "battingStats", "bowlingStats"] as const
         for (const table of tables) {
@@ -484,7 +497,7 @@ function SettingsPage() {
               <Button
                 variant="outline"
                 className="justify-start gap-1.5 text-sm"
-                onClick={handleImport}
+                onClick={() => setShowImportConfirm(true)}
               >
                 <Upload className="size-4" />
                 Import
@@ -608,6 +621,44 @@ function SettingsPage() {
         </Card>
       </div>
 
+      {/* Import confirmation dialog */}
+      <AlertDialog open={showImportConfirm} onOpenChange={(open) => !open && setShowImportConfirm(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Back up before importing?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Importing will merge data into your existing records. Creating a backup first lets you
+              restore if anything goes wrong.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowImportConfirm(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              onClick={() => {
+                setShowImportConfirm(false)
+                handleImportDirect()
+              }}
+            >
+              Skip backup — Import
+            </AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => {
+                setShowImportConfirm(false)
+                handleExport()
+                setTimeout(() => {
+                  handleImportDirect()
+                }, 500)
+              }}
+            >
+              Create backup first
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Dry-run result dialog */}
       <AlertDialog open={!!dryRunResult} onOpenChange={(open) => !open && setDryRunResult(null)}>
         <AlertDialogContent>
@@ -654,7 +705,7 @@ function SettingsPage() {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDryRunResult(null)}>Close</AlertDialogCancel>
             {dryRunResult?.valid && (
-              <AlertDialogAction onClick={() => { setDryRunResult(null); handleImport() }}>
+              <AlertDialogAction onClick={() => { setDryRunResult(null); handleImportDirect() }}>
                 Import now
               </AlertDialogAction>
             )}
