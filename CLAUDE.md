@@ -108,6 +108,26 @@ if (!liveMatch) navigate("/")   // not found — go home
 
 **Why:** Without the `null` default, `useLiveQuery` returns `undefined` for BOTH "loading" and "not found" — the guard `if (liveMatch === undefined) return` exits early even when the DB has no live match, causing infinite spinner.
 
+### loadMatch must NOT touch isProcessing
+
+```ts
+// WRONG — isProcessing stuck true if loadMatch throws, permanently breaks canScore:
+loadMatch: async (id) => {
+  set({ isProcessing: true })  // ← REMOVE THIS
+  ...
+  set({ ..., isProcessing: false })  // ← REMOVE THIS TOO
+}
+
+// CORRECT — loadMatch only sets match/store fields, never isProcessing
+loadMatch: async (id) => {
+  const match = await db.matches.get(id)
+  ...
+  set({ matchId, match, onStrikeBatsmanId, ... })  // no isProcessing
+}
+```
+
+**Why:** `RootLayout` calls `loadMatch` on app startup with no error handling. Any exception after `set({ isProcessing: true })` leaves `isProcessing` permanently `true`. Since `canScore = !!striker && !!bowler && !isProcessing`, all score buttons are permanently disabled. `loadMatch` doesn't need to touch `isProcessing` — `ScoringLoader` gates on `!match`, not `isProcessing`.
+
 ## Known Bugs
 
 ### Bug 1: NewBatsmanSheet may not open after wicket [MEDIUM]
