@@ -29,17 +29,9 @@ import { NewBowlerSheet } from "@/components/scoring/NewBowlerSheet"
 import { NewBatsmanSheet } from "@/components/scoring/NewBatsmanSheet"
 import { PartnershipBar } from "@/components/scoring/PartnershipBar"
 import { RunPickerDialog } from "@/components/scoring/RunPickerDialog"
+import { InningsBreakOverlay } from "@/components/scoring/InningsBreakOverlay"
+import { MatchResultOverlay } from "@/components/scoring/MatchResultOverlay"
 
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "@workspace/ui/components/alert-dialog"
 import {
   Sheet,
   SheetContent,
@@ -243,8 +235,8 @@ function ScoringPage() {
 
   // ── Innings complete detection (for persistent recovery) ──────────────────
   const inningsIsOver = isInningsComplete(innings, rules)
-  const isLastInnings = currentInningsIndex >= match.innings.length - 1 ||
-    (rules.inningsPerSide === 1 && currentInningsIndex >= 1)
+  const totalExpectedInnings = (rules.inningsPerSide ?? 1) * 2
+  const isLastInnings = currentInningsIndex >= totalExpectedInnings - 1
 
   // ─────────────────────────────────────────────────────────────────────────
   // Guard: need striker + bowler to score, and innings must be live
@@ -271,6 +263,40 @@ function ScoringPage() {
 
   // ── Result text for match end dialog ──────────────────────────────────────
   const inningsEndMsg = `${battingTeamName} scored ${innings.totalRuns}/${innings.totalWickets} in ${formatOvers(innings.totalLegalDeliveries, rules.ballsPerOver)} overs.`
+
+  // ── Target team name (team about to bat in 2nd innings) ───────────────────
+  const targetTeamName =
+    innings.battingTeamId === match.team1Id ? match.team2Name : match.team1Name
+
+  // ── Match result computation for MatchResultOverlay ───────────────────────
+  const matchResultStr = (() => {
+    if (!isSecondInnings || !prevInnings) return inningsEndMsg
+    const team2R = innings.totalRuns
+    const team1R = prevInnings.totalRuns
+    if (team2R > team1R) {
+      const wkLeft = rules.maxWickets - innings.totalWickets
+      const winnerName = innings.battingTeamId === match.team1Id ? match.team1Name : match.team2Name
+      return `${winnerName} won by ${wkLeft} wicket${wkLeft !== 1 ? "s" : ""}.`
+    } else if (team1R > team2R) {
+      const winnerName = prevInnings.battingTeamId === match.team1Id ? match.team1Name : match.team2Name
+      return `${winnerName} won by ${team1R - team2R} run${team1R - team2R !== 1 ? "s" : ""}.`
+    }
+    return "Match tied!"
+  })()
+
+  const matchWinnerName = (() => {
+    if (!isSecondInnings || !prevInnings) return undefined
+    const team2R = innings.totalRuns
+    const team1R = prevInnings.totalRuns
+    if (team2R > team1R) {
+      return innings.battingTeamId === match.team1Id ? match.team1Name : match.team2Name
+    } else if (team1R > team2R) {
+      return prevInnings.battingTeamId === match.team1Id ? match.team1Name : match.team2Name
+    }
+    return "tie"
+  })()
+
+  const matchWinnerIsFirstTeam = matchWinnerName === match.team1Name
 
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER
@@ -686,25 +712,19 @@ function ScoringPage() {
         onSelect={handleNewBatsmanSelect}
       />
 
-      {/* Innings end dialog */}
-      <AlertDialog open={showInningsEndDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Innings Complete</AlertDialogTitle>
-            <AlertDialogDescription>
-              {inningsEndMsg} Start the 2nd innings?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowInningsEndDialog(false)}>
-              Wait
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleStartNextInnings}>
-              Start 2nd Innings
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Innings break overlay */}
+      <InningsBreakOverlay
+        open={showInningsEndDialog}
+        completedInnings={{
+          battingTeamName,
+          totalRuns: innings.totalRuns,
+          totalWickets: innings.totalWickets,
+          oversStr: formatOvers(innings.totalLegalDeliveries, rules.ballsPerOver),
+        }}
+        targetTeamName={targetTeamName}
+        target={innings.totalRuns + 1}
+        onStartInnings={handleStartNextInnings}
+      />
 
       {/* Multi-undo sheet */}
       <Sheet open={showUndoSheet} onOpenChange={(o) => !o && setShowUndoSheet(false)} modal={true}>
@@ -751,36 +771,16 @@ function ScoringPage() {
         </SheetContent>
       </Sheet>
 
-      {/* Match end dialog */}
-      <AlertDialog open={showMatchEndDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Match Complete</AlertDialogTitle>
-            <AlertDialogDescription>
-              {inningsEndMsg}
-              {"\n"}
-              {isSecondInnings && prevInnings && (() => {
-                const team2R = innings.totalRuns
-                const team1R = prevInnings.totalRuns
-                if (team2R > team1R) {
-                  const wkLeft = rules.maxWickets - innings.totalWickets
-                  const winnerName = innings.battingTeamId === match.team1Id ? match.team1Name : match.team2Name
-                  return `${winnerName} won by ${wkLeft} wicket${wkLeft !== 1 ? "s" : ""}.`
-                } else if (team1R > team2R) {
-                  const winnerName = prevInnings.battingTeamId === match.team1Id ? match.team1Name : match.team2Name
-                  return `${winnerName} won by ${team1R - team2R} run${team1R - team2R !== 1 ? "s" : ""}.`
-                }
-                return "Match tied!"
-              })()}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={handleEndMatch}>
-              View Scorecard
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Match result overlay */}
+      <MatchResultOverlay
+        open={showMatchEndDialog}
+        result={matchResultStr}
+        winner={matchWinnerName}
+        winnerIsFirstTeam={matchWinnerIsFirstTeam}
+        team1Name={match.team1Name}
+        team2Name={match.team2Name}
+        onViewScorecard={handleEndMatch}
+      />
     </div>
   )
 }

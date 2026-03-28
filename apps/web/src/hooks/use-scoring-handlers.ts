@@ -68,9 +68,8 @@ export function useScoringHandlers(ctx: ScoringContext, ui: ScoringUIActions) {
     if (!latestInnings) return
 
     if (isInningsComplete(latestInnings, ctx.rules)) {
-      const isLastInnings =
-        latestIdx >= latestMatch.innings.length - 1 ||
-        (ctx.rules.inningsPerSide === 1 && latestIdx >= 1)
+      const totalInnings = (ctx.rules.inningsPerSide ?? 1) * 2
+      const isLastInnings = latestIdx >= totalInnings - 1
       if (isLastInnings) {
         ui.setShowMatchEndDialog(true)
       } else {
@@ -218,9 +217,8 @@ export function useScoringHandlers(ctx: ScoringContext, ui: ScoringUIActions) {
     const latestInnings = latestState.match?.innings[ctx.currentInningsIndex]
 
     if (latestInnings && isInningsComplete(latestInnings, ctx.rules)) {
-      const isLastInnings =
-        ctx.currentInningsIndex >= (latestState.match?.innings.length ?? 1) - 1 ||
-        (ctx.rules.inningsPerSide === 1 && ctx.currentInningsIndex >= 1)
+      const totalInnings = (ctx.rules.inningsPerSide ?? 1) * 2
+      const isLastInnings = ctx.currentInningsIndex >= totalInnings - 1
       if (isLastInnings) {
         ui.setShowMatchEndDialog(true)
       } else {
@@ -343,6 +341,7 @@ export function useScoringHandlers(ctx: ScoringContext, ui: ScoringUIActions) {
       currentBowlerId: null,
       isFreeHit: false,
       overBalls: [],
+      lastOverBalls: [],
       lastOverSummary: "",
       oversBowledByBowler: {},
     })
@@ -355,38 +354,51 @@ export function useScoringHandlers(ctx: ScoringContext, ui: ScoringUIActions) {
   async function handleEndMatch() {
     ui.setShowMatchEndDialog(false)
 
-    const updated = structuredClone(ctx.match)
-    updated.innings[ctx.currentInningsIndex].status = "completed"
+    // Read fresh state — ctx.match may be 1 ball behind if the final ball
+    // triggered this dialog via checkPostBall's async recordBall call.
+    const freshState = useScoringStore.getState()
+    const freshMatch = freshState.match
+    if (!freshMatch) return
+    const freshInningsIdx = freshState.currentInningsIndex
+    const freshInnings = freshMatch.innings[freshInningsIdx]
+    if (!freshInnings) return
+
+    const updated = structuredClone(freshMatch)
+    updated.innings[freshInningsIdx].status = "completed"
     updated.status = "completed"
 
     let resultStr = ""
     let winnerId: string | undefined
 
-    if (ctx.isSecondInnings && ctx.prevInnings) {
-      const team2Runs = updated.innings[ctx.currentInningsIndex].totalRuns
-      const team1Runs = ctx.prevInnings.totalRuns
+    const isSecondInnings = freshInningsIdx > 0
+    const prevInnings = isSecondInnings ? freshMatch.innings[freshInningsIdx - 1] : undefined
+
+    if (isSecondInnings && prevInnings) {
+      const team2Runs = freshInnings.totalRuns
+      const team1Runs = prevInnings.totalRuns
 
       if (team2Runs > team1Runs) {
-        const wicketsLeft = ctx.rules.maxWickets - updated.innings[ctx.currentInningsIndex].totalWickets
-        const ballsLeft = getRemainingBalls(updated.innings[ctx.currentInningsIndex], ctx.rules)
-        winnerId = ctx.innings.battingTeamId
+        const wicketsLeft = ctx.rules.maxWickets - freshInnings.totalWickets
+        const ballsLeft = getRemainingBalls(freshInnings, ctx.rules)
+        winnerId = freshInnings.battingTeamId
         const winnerName =
-          ctx.innings.battingTeamId === ctx.match.team1Id ? ctx.match.team1Name : ctx.match.team2Name
+          freshInnings.battingTeamId === freshMatch.team1Id ? freshMatch.team1Name : freshMatch.team2Name
         resultStr = `${winnerName} won by ${wicketsLeft} wicket${wicketsLeft !== 1 ? "s" : ""}${
           ballsLeft ? ` (${formatOvers(ballsLeft, ctx.rules.ballsPerOver)} ov remaining)` : ""
         }`
       } else if (team1Runs > team2Runs) {
-        winnerId = ctx.prevInnings.battingTeamId
+        winnerId = prevInnings.battingTeamId
         const winnerName =
-          ctx.prevInnings.battingTeamId === ctx.match.team1Id ? ctx.match.team1Name : ctx.match.team2Name
+          prevInnings.battingTeamId === freshMatch.team1Id ? freshMatch.team1Name : freshMatch.team2Name
         resultStr = `${winnerName} won by ${team1Runs - team2Runs} run${team1Runs - team2Runs !== 1 ? "s" : ""}`
       } else {
         resultStr = "Match tied"
         winnerId = "tie"
       }
     } else {
-      const runsScored = updated.innings[ctx.currentInningsIndex].totalRuns
-      resultStr = `Innings complete — ${ctx.battingTeamName} scored ${runsScored}/${updated.innings[ctx.currentInningsIndex].totalWickets}`
+      const battingName =
+        freshInnings.battingTeamId === freshMatch.team1Id ? freshMatch.team1Name : freshMatch.team2Name
+      resultStr = `Innings complete — ${battingName} scored ${freshInnings.totalRuns}/${freshInnings.totalWickets}`
     }
 
     updated.result = resultStr
@@ -401,7 +413,7 @@ export function useScoringHandlers(ctx: ScoringContext, ui: ScoringUIActions) {
     }
 
     useScoringStore.getState().clearSession()
-    ui.navigate({ to: `/scorecard/${ctx.match.id}` })
+    ui.navigate({ to: `/scorecard/${freshMatch.id}` })
   }
 
   // ── Undo handler ──────────────────────────────────────────────────────────────

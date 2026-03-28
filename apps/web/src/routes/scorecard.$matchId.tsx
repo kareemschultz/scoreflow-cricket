@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { createFileRoute, useParams, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { format } from "date-fns"
@@ -8,6 +8,9 @@ import {
   Check,
   ArrowLeft,
   BarChart2,
+  ChevronDown,
+  ChevronUp,
+  Trophy,
 } from "lucide-react"
 import { useRef, useState } from "react"
 import html2canvas from "html2canvas"
@@ -18,6 +21,8 @@ import { BattingCard } from "@/components/scorecard/BattingCard"
 import { BowlingCard } from "@/components/scorecard/BowlingCard"
 import { FallOfWickets } from "@/components/scorecard/FallOfWickets"
 import { PartnershipChart } from "@/components/scorecard/PartnershipChart"
+import { ManhattanChart } from "@/components/charts/ManhattanChart"
+import { WormGraph } from "@/components/charts/WormGraph"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -45,6 +50,206 @@ function resultBannerClass(match: Match): string {
   if (match.status === "abandoned") return "bg-red-500/10 border-red-500/30 text-red-400"
   if (match.winner === "tie") return "bg-amber-500/10 border-amber-500/30 text-amber-400"
   return "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+}
+
+function resultTextColor(match: Match): string {
+  if (match.status === "abandoned") return "text-red-400"
+  if (match.winner === "tie") return "text-amber-400"
+  return "text-emerald-400"
+}
+
+function buildManhattanData(innings: Innings) {
+  const overMap = new Map<number, { runs: number; wickets: number }>()
+  for (const ball of innings.ballLog) {
+    const ov = ball.overNumber
+    const entry = overMap.get(ov) ?? { runs: 0, wickets: 0 }
+    entry.runs += ball.runs
+    if (ball.isWicket) entry.wickets += 1
+    overMap.set(ov, entry)
+  }
+  return Array.from(overMap.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([overNumber, d]) => ({ overNumber, ...d }))
+}
+
+// ─── Match Summary Card ───────────────────────────────────────────────────────
+
+function MatchSummaryCard({ match }: { match: Match }) {
+  const inn1 = match.innings[0]
+  const inn2 = match.innings[1]
+
+  if (!inn1) return null
+
+  const inn1BattingName = inn1.battingTeamId === match.team1Id ? match.team1Name : match.team2Name
+  const inn2BattingName = inn2
+    ? inn2.battingTeamId === match.team1Id
+      ? match.team1Name
+      : match.team2Name
+    : null
+
+  const target = inn2?.target
+
+  const resultColor = resultTextColor(match)
+  const resultBg = match.status === "abandoned"
+    ? "from-red-500/8 to-red-500/3"
+    : match.winner === "tie"
+      ? "from-amber-500/8 to-amber-500/3"
+      : "from-emerald-500/8 to-emerald-500/3"
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+    >
+      <Card className={`overflow-hidden border-border bg-gradient-to-br ${resultBg}`}>
+        <CardContent className="pt-4 pb-4 px-4 space-y-3">
+          {/* Trophy + title row */}
+          <div className="flex items-center gap-2">
+            <div className="size-7 rounded-full bg-background/60 flex items-center justify-center shrink-0">
+              <Trophy className={`size-3.5 ${resultColor}`} />
+            </div>
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+              Match Summary
+            </p>
+          </div>
+
+          {/* Innings score lines */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-semibold text-foreground truncate mr-2">{inn1BattingName}</span>
+              <span className="font-bold tabular-nums text-foreground shrink-0">
+                {inn1.totalRuns}/{inn1.totalWickets}
+                <span className="text-[11px] font-normal text-muted-foreground ml-1">
+                  ({oversStr(inn1)} ov)
+                </span>
+              </span>
+            </div>
+
+            {inn2 && inn2BattingName && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-semibold text-foreground truncate mr-2">{inn2BattingName}</span>
+                <span className="font-bold tabular-nums text-foreground shrink-0">
+                  {inn2.totalRuns}/{inn2.totalWickets}
+                  <span className="text-[11px] font-normal text-muted-foreground ml-1">
+                    ({oversStr(inn2)} ov)
+                  </span>
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="h-px bg-border/60" />
+
+          {/* Target + result */}
+          <div className="space-y-1">
+            {inn2 && target !== undefined && (
+              <p className="text-[11px] text-muted-foreground">
+                Target: <span className="font-semibold text-foreground">{target}</span>
+              </p>
+            )}
+            {match.result && (
+              <p className={`text-sm font-bold leading-snug ${resultColor}`}>
+                {match.result}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+}
+
+// ─── Match Charts Section (collapsible) ──────────────────────────────────────
+
+function MatchChartsSection({ match }: { match: Match }) {
+  const [open, setOpen] = useState(false)
+
+  const inn1 = match.innings[0]
+  const inn2 = match.innings[1]
+
+  if (!inn1) return null
+
+  const maxOvers = match.rules.oversPerInnings ?? 20
+  const mhData1 = buildManhattanData(inn1)
+  const mhData2 = inn2 ? buildManhattanData(inn2) : undefined
+  const battingName1 = inn1.battingTeamId === match.team1Id ? match.team1Name : match.team2Name
+  const battingName2 = inn2
+    ? inn2.battingTeamId === match.team1Id
+      ? match.team1Name
+      : match.team2Name
+    : undefined
+
+  return (
+    <div className="rounded-lg border border-border overflow-hidden">
+      {/* Toggle header */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-muted/20 hover:bg-muted/40 transition-colors text-sm font-semibold"
+        aria-expanded={open}
+      >
+        <div className="flex items-center gap-2">
+          <BarChart2 className="size-4 text-primary" />
+          <span>Match Charts</span>
+          {inn2 && (
+            <span className="text-[10px] text-muted-foreground font-normal">Both innings</span>
+          )}
+        </div>
+        {open ? (
+          <ChevronUp className="size-4 text-muted-foreground" />
+        ) : (
+          <ChevronDown className="size-4 text-muted-foreground" />
+        )}
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="charts-panel"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 py-4 space-y-5 bg-background">
+              {/* Manhattan */}
+              <div>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                  Manhattan
+                </p>
+                <ManhattanChart
+                  innings={mhData1}
+                  innings2={mhData2}
+                  maxOvers={maxOvers}
+                  team1Name={battingName1}
+                  team2Name={battingName2}
+                  height={220}
+                />
+              </div>
+
+              {/* Worm */}
+              <div className="border-t border-border pt-4">
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                  Worm
+                </p>
+                <WormGraph
+                  innings1Balls={inn1.ballLog}
+                  innings2Balls={inn2?.ballLog}
+                  ballsPerOver={match.rules.ballsPerOver}
+                  maxOvers={maxOvers}
+                  team1Name={battingName1}
+                  team2Name={battingName2}
+                  height={220}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
 }
 
 // ─── Text scorecard builder ───────────────────────────────────────────────────
@@ -320,14 +525,16 @@ function ScorecardPage() {
       </div>
 
       <div id="scorecard-capture" className="px-4 py-4 space-y-4 pb-8" ref={scorecardRef}>
-        {/* Result banner */}
-        {match.result && (
+        {/* Match Summary card (completed) or plain result banner (other states) */}
+        {match.status === "completed" && match.innings.length >= 2 ? (
+          <MatchSummaryCard match={match} />
+        ) : match.result ? (
           <div
             className={`border rounded-lg px-4 py-2.5 text-sm font-semibold ${resultBannerClass(match)}`}
           >
             {match.result}
           </div>
-        )}
+        ) : null}
 
         {/* Innings tabs */}
         {completedInnings.length > 0 ? (
@@ -354,7 +561,10 @@ function ScorecardPage() {
           </Card>
         )}
 
-        {/* Charts */}
+        {/* Embedded charts (collapsible) */}
+        <MatchChartsSection match={match} />
+
+        {/* Link to full charts page */}
         <ChartsButton matchId={matchId} />
 
         {/* Share */}
