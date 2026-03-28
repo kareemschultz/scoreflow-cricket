@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { RotateCcw, ChevronRight } from "lucide-react"
@@ -11,7 +11,6 @@ import {
   getRequiredRunRate,
   getCurrentRunRate,
   formatOvers,
-  getOversBowledByPlayer,
   getCurrentPartnership,
 } from "@/lib/cricket-engine"
 import { useWakeLock } from "@/hooks/use-wake-lock"
@@ -40,6 +39,12 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@workspace/ui/components/alert-dialog"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { cn } from "@workspace/ui/lib/utils"
 
 import type { Player, BatsmanEntry, BowlerEntry } from "@/types/cricket"
@@ -59,8 +64,10 @@ function ScoringPage() {
     isFreeHit,
     overBalls,
     lastOverSummary,
+    oversBowledByBowler,
     isProcessing,
     swapStrike,
+    undoNBalls,
   } = useScoringStore()
 
   // Wake lock while on this screen
@@ -87,6 +94,7 @@ function ScoringPage() {
   const [byePickerOpen, setByePickerOpen] = useState(false)
   const [lbPickerOpen, setLbPickerOpen] = useState(false)
   const [otPickerOpen, setOtPickerOpen] = useState(false)
+  const [showUndoSheet, setShowUndoSheet] = useState(false)
   const [scoreFlash, setScoreFlash] = useState<"boundary" | "six" | "wicket" | null>(null)
   const [flashKey, setFlashKey] = useState(0)
 
@@ -151,17 +159,21 @@ function ScoringPage() {
   // Powerplay
   const isPowerplay = isInPowerplay(currentOver, rules)
 
-  // Partnership
-  const partnership =
-    striker && nonStriker
-      ? getCurrentPartnership(
-          innings.ballLog,
-          striker.playerId,
-          nonStriker.playerId,
-          innings.totalWickets,
-          innings.totalRuns
-        )
-      : null
+  // Partnership — memoised to avoid recomputing on every render
+  const partnership = useMemo(
+    () =>
+      striker && nonStriker
+        ? getCurrentPartnership(
+            innings.ballLog,
+            striker.playerId,
+            nonStriker.playerId,
+            innings.totalWickets,
+            innings.totalRuns
+          )
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [innings.ballLog, striker?.playerId, nonStriker?.playerId, innings.totalWickets, innings.totalRuns]
+  )
 
   // Available batsmen for new batsman sheet
   const playingXI: string[] =
@@ -177,7 +189,6 @@ function ScoringPage() {
   // Bowler options for new bowler sheet
   const fieldingXI: string[] =
     bowlingTeamId === match.team1Id ? match.playingXI1 : match.playingXI2
-  const currentOversMap = getOversBowledByPlayer(innings.ballLog, rules.ballsPerOver)
   const lastBowlerId =
     innings.ballLog.length > 0
       ? innings.ballLog[innings.ballLog.length - 1]?.bowlerId
@@ -186,7 +197,7 @@ function ScoringPage() {
   const bowlerOptions = allPlayers
     .filter((p) => fieldingXI.includes(p.id))
     .map((p) => {
-      const oversBowled = currentOversMap[p.id] ?? 0
+      const oversBowled = oversBowledByBowler[p.id] ?? 0
       const maxOvers = rules.maxOversPerBowler
       const isDisabledConsecutive = p.id === lastBowlerId
       const isDisabledMax = maxOvers !== null && oversBowled >= maxOvers
@@ -557,6 +568,12 @@ function ScoringPage() {
           <button
             disabled={isProcessing || innings.ballLog.length === 0}
             onClick={handleUndo}
+            onContextMenu={(e) => {
+              if (overBalls.length > 1) {
+                e.preventDefault()
+                setShowUndoSheet(true)
+              }
+            }}
             className={cn(
               "h-12 rounded-xl border font-medium text-sm transition-all active:scale-95 flex items-center justify-center gap-1",
               "bg-muted/40 border-border text-muted-foreground",
@@ -641,6 +658,7 @@ function ScoringPage() {
         open={showNewBowlerSheet}
         bowlers={bowlerOptions}
         onSelect={handleNewBowlerSelect}
+        overSummary={lastOverSummary || undefined}
       />
 
       {/* New batsman sheet */}
@@ -670,6 +688,51 @@ function ScoringPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Multi-undo sheet */}
+      <Sheet open={showUndoSheet} onOpenChange={(o) => !o && setShowUndoSheet(false)} modal={true}>
+        <SheetContent side="bottom" showCloseButton={false} className="rounded-t-2xl pb-safe">
+          <SheetHeader className="pb-3 pt-5 px-4">
+            <div className="w-10 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mb-3" />
+            <SheetTitle className="text-center">Undo Balls</SheetTitle>
+          </SheetHeader>
+          <div className="px-4 pb-6 space-y-2">
+            {overBalls.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No balls in this over to undo.</p>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground text-center mb-3">
+                  This over: {overBalls.map((b) => {
+                    if (b.isWicket) return "W"
+                    if (b.extraType === "wide") return "wd"
+                    if (b.extraType === "noBall") return "nb"
+                    return String(b.runs)
+                  }).join(" ")}
+                </p>
+                {[1, 2, 3, 4, 5, 6].filter((n) => n <= overBalls.length).map((n) => (
+                  <button
+                    key={n}
+                    onClick={async () => {
+                      setShowUndoSheet(false)
+                      haptic()
+                      await undoNBalls(n)
+                    }}
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-muted/60 active:bg-muted transition-colors text-left"
+                  >
+                    <span className="text-sm font-medium">Undo {n} ball{n !== 1 ? "s" : ""}</span>
+                    <span className="text-xs text-muted-foreground">Last {n}: {overBalls.slice(-n).map((b) => {
+                      if (b.isWicket) return "W"
+                      if (b.extraType === "wide") return "wd"
+                      if (b.extraType === "noBall") return "nb"
+                      return String(b.runs)
+                    }).join(" ")}</span>
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Match end dialog */}
       <AlertDialog open={showMatchEndDialog}>

@@ -18,15 +18,21 @@ interface NewBowlerSheetProps {
   open: boolean
   bowlers: BowlerOption[]
   onSelect: (playerId: string) => void
+  overSummary?: string
 }
 
-export function NewBowlerSheet({ open, bowlers, onSelect }: NewBowlerSheetProps) {
+export function NewBowlerSheet({ open, bowlers, onSelect, overSummary }: NewBowlerSheetProps) {
   return (
     <Sheet open={open}>
       <SheetContent side="bottom" showCloseButton={false} className="rounded-t-2xl max-h-[70dvh]">
         <SheetHeader className="pb-2 pt-4 px-4">
           <SheetTitle className="text-center">Select Next Bowler</SheetTitle>
           <div className="w-10 h-1 bg-muted-foreground/30 rounded-full mx-auto mt-2" />
+          {overSummary && (
+            <p className="text-xs text-muted-foreground text-center mt-1 font-mono">
+              Last over: {overSummary}
+            </p>
+          )}
         </SheetHeader>
 
         <div className="overflow-y-auto pb-8 px-2">
