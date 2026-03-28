@@ -84,6 +84,30 @@ const isLastInnings = latestIdx >= totalInnings - 1
 // NOT: match.innings.length - 1  ← wrong when first innings ends
 ```
 
+## Critical Architecture: ScoringLoader Pattern
+
+`scoring.tsx` has a `ScoringLoader` wrapper component that handles cold-start (page refresh, Resume Match):
+
+```tsx
+// ScoringLoader — ONLY gate on !match, NEVER on isProcessing
+if (!match) return <spinner />   // ← correct
+// if (!match || isProcessing)   // ← WRONG: unmounts ScoringPage on every ball tap
+return <ScoringPage />
+```
+
+**Why:** `recordBall` sets `isProcessing:true` during every DB write. Including `isProcessing` in the gate condition unmounts and remounts `ScoringPage` on every single button tap, resetting all dialog state and making scoring non-functional.
+
+`useLiveQuery` null/undefined sentinel pattern:
+```ts
+// Pass null as default so we can tell loading apart from "not found"
+const liveMatch = useLiveQuery(() => db.matches.where("status").equals("live").first(), [], null)
+// null = still loading | undefined = query done, not found | Match = found
+if (liveMatch === null) return  // loading — wait
+if (!liveMatch) navigate("/")   // not found — go home
+```
+
+**Why:** Without the `null` default, `useLiveQuery` returns `undefined` for BOTH "loading" and "not found" — the guard `if (liveMatch === undefined) return` exits early even when the DB has no live match, causing infinite spinner.
+
 ## Known Bugs
 
 ### Bug 1: NewBatsmanSheet may not open after wicket [MEDIUM]
@@ -118,6 +142,15 @@ const isLastInnings = latestIdx >= totalInnings - 1
 - ✅ PWA with service worker + workbox precaching
 - ✅ iOS PWA meta tags
 - ✅ Share scorecard as image (html2canvas) + text copy
+
+## Verification Protocol
+
+**Always verify deploys are live before reporting to user:**
+```bash
+gh run list --limit 1   # check deploy succeeded
+curl -sI https://kareemschultz.github.io/scoreflow/ | grep last-modified  # confirm bundle timestamp
+```
+Bundle last-modified should be within 60s of the gh run completed timestamp. JS is minified — can't grep for code strings in the bundle.
 
 ## Pending Enhancements
 - [ ] Framer Motion page transitions + score counter animation
