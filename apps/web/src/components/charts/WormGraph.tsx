@@ -11,6 +11,7 @@ interface WormGraphProps {
   maxOvers: number
   team1Name: string
   team2Name?: string
+  target?: number
   height?: number
 }
 
@@ -60,6 +61,7 @@ export function WormGraph({
   maxOvers,
   team1Name,
   team2Name,
+  target,
   height = 160,
 }: WormGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -282,6 +284,30 @@ export function WormGraph({
                     />
                   ))}
               </>
+            )}
+
+            {/* Target line (chase) */}
+            {target !== undefined && target <= yMax && (
+              <g>
+                <line
+                  x1={0} x2={chartW}
+                  y1={toY(target)} y2={toY(target)}
+                  stroke="rgb(251,191,36)"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 3"
+                  strokeOpacity={0.8}
+                />
+                <text
+                  x={chartW + 2}
+                  y={toY(target)}
+                  dominantBaseline="middle"
+                  className="fill-amber-400"
+                  fontSize={7}
+                  fontWeight={600}
+                >
+                  {target}
+                </text>
+              </g>
             )}
 
             {/* Axes */}

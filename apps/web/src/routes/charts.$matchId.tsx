@@ -127,6 +127,7 @@ function ChartsContent({ match, activeTab }: { match: Match; activeTab: ChartTab
           maxOvers={maxOvers}
           team1Name={battingName1}
           team2Name={battingName2}
+          target={inn2 ? inn1.totalRuns + 1 : undefined}
           height={260}
         />
       </ChartCard>

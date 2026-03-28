@@ -241,6 +241,7 @@ function MatchChartsSection({ match }: { match: Match }) {
                   maxOvers={maxOvers}
                   team1Name={battingName1}
                   team2Name={battingName2}
+                  target={inn2 ? inn1.totalRuns + 1 : undefined}
                   height={220}
                 />
               </div>
@@ -337,20 +338,25 @@ function ShareButtons({ match, scorecardRef }: { match: Match; scorecardRef: Rea
           }
         },
       })
-      canvas.toBlob(async (blob) => {
-        if (!blob) return
-        const file = new File([blob], "scorecard.png", { type: "image/png" })
-        if (navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ files: [file], title: `${match.team1Name} vs ${match.team2Name}` })
-        } else {
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement("a")
-          a.href = url
-          a.download = "scorecard.png"
-          a.click()
-          URL.revokeObjectURL(url)
-        }
-      }, "image/png")
+
+      // Wrap toBlob in a Promise so we can await it — otherwise setSharing(false)
+      // fires in finally before the blob callback runs.
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/png")
+      )
+      if (!blob) return
+
+      const file = new File([blob], "scorecard.png", { type: "image/png" })
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: `${match.team1Name} vs ${match.team2Name}` })
+      } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = "scorecard.png"
+        a.click()
+        URL.revokeObjectURL(url)
+      }
     } finally {
       setSharing(false)
     }

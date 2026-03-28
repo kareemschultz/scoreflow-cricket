@@ -1,14 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { formatDistanceToNow } from "date-fns"
-import { Search, Clock, Trophy } from "lucide-react"
-import { useState } from "react"
-import { motion } from "framer-motion"
-
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.05 } },
-}
+import { Search, Clock, Trophy, Trash2 } from "lucide-react"
+import { useState, useRef } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 
 const itemVariants = {
   hidden: { opacity: 0, y: 12 },
@@ -50,71 +45,101 @@ function getTeamScore(match: Match, teamId: string): string {
 
 function MatchRow({ match }: { match: Match }) {
   const navigate = useNavigate()
+  const [showDelete, setShowDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const team1Score = getTeamScore(match, match.team1Id)
   const team2Score = getTeamScore(match, match.team2Id)
 
+  function startLongPress() {
+    longPressTimer.current = setTimeout(() => setShowDelete(true), 500)
+  }
+  function cancelLongPress() {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current)
+  }
+
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation()
+    setDeleting(true)
+    await db.matches.delete(match.id)
+  }
+
   return (
-    <motion.button
-      className="w-full text-left"
-      onClick={() =>
-        navigate({ to: "/scorecard/$matchId", params: { matchId: match.id } })
-      }
-      whileTap={{ scale: 0.98 }}
+    <motion.div
+      className="w-full relative"
+      variants={itemVariants}
+      layout
+      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+      transition={{ duration: 0.2 }}
     >
-      <Card className="hover:bg-muted/50 active:bg-muted/70 transition-colors">
-        <CardContent className="py-3 px-4">
-          <div className="flex items-start gap-3">
-            <div className="flex-1 min-w-0">
-              {/* Teams */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-semibold text-sm">{match.team1Name}</span>
-                <span className="text-xs text-muted-foreground">vs</span>
-                <span className="font-semibold text-sm">{match.team2Name}</span>
+      <motion.button
+        className="w-full text-left"
+        onClick={() => {
+          if (showDelete) { setShowDelete(false); return }
+          navigate({ to: "/scorecard/$matchId", params: { matchId: match.id } })
+        }}
+        onMouseDown={startLongPress}
+        onMouseUp={cancelLongPress}
+        onMouseLeave={cancelLongPress}
+        onTouchStart={startLongPress}
+        onTouchEnd={cancelLongPress}
+        onTouchMove={cancelLongPress}
+        whileTap={{ scale: showDelete ? 1 : 0.98 }}
+      >
+        <Card className={`hover:bg-muted/50 active:bg-muted/70 transition-colors ${showDelete ? "border-red-500/40" : ""}`}>
+          <CardContent className="py-3 px-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-semibold text-sm">{match.team1Name}</span>
+                  <span className="text-xs text-muted-foreground">vs</span>
+                  <span className="font-semibold text-sm">{match.team2Name}</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground tabular-nums">{team1Score}</span>
+                  <span className="text-xs text-muted-foreground">·</span>
+                  <span className="text-xs text-muted-foreground tabular-nums">{team2Score}</span>
+                </div>
+                {match.result && (
+                  <p className="text-xs text-primary font-medium mt-1 leading-tight">{match.result}</p>
+                )}
               </div>
-
-              {/* Scores */}
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {team1Score}
+              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                <div className="flex items-center gap-1">
+                  <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${formatBadgeClass(match.format)}`}>
+                    {match.format}
+                  </Badge>
+                  <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${statusBadgeClass(match.status)}`}>
+                    {match.status === "abandoned" ? "ABD" : "FIN"}
+                  </Badge>
+                </div>
+                <span className="text-[10px] text-muted-foreground">
+                  {formatDistanceToNow(new Date(match.date), { addSuffix: true })}
                 </span>
-                <span className="text-xs text-muted-foreground">·</span>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {team2Score}
-                </span>
               </div>
-
-              {/* Result */}
-              {match.result && (
-                <p className="text-xs text-primary font-medium mt-1 leading-tight">
-                  {match.result}
-                </p>
-              )}
             </div>
+          </CardContent>
+        </Card>
+      </motion.button>
 
-            {/* Right column: badges + date */}
-            <div className="flex flex-col items-end gap-1.5 shrink-0">
-              <div className="flex items-center gap-1">
-                <Badge
-                  variant="outline"
-                  className={`text-[10px] px-1.5 py-0 ${formatBadgeClass(match.format)}`}
-                >
-                  {match.format}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className={`text-[10px] px-1.5 py-0 ${statusBadgeClass(match.status)}`}
-                >
-                  {match.status === "abandoned" ? "ABD" : "FIN"}
-                </Badge>
-              </div>
-              <span className="text-[10px] text-muted-foreground">
-                {formatDistanceToNow(new Date(match.date), { addSuffix: true })}
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.button>
+      {/* Delete button — revealed on long-press */}
+      <AnimatePresence>
+        {showDelete && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.15 }}
+            onClick={handleDelete}
+            disabled={deleting}
+            className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-400 text-white text-xs font-semibold shadow-lg"
+          >
+            <Trash2 className="size-3.5" />
+            {deleting ? "Deleting…" : "Delete"}
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </motion.div>
   )
 }
 
@@ -229,22 +254,17 @@ function HistoryPage() {
           </div>
         ) : (
           /* Match list */
-          <motion.div
-            className="space-y-2"
-            initial="hidden"
-            animate="visible"
-            variants={containerVariants}
-          >
+          <div className="space-y-2">
             <p className="text-xs text-muted-foreground mb-3">
               {filtered.length} match{filtered.length !== 1 ? "es" : ""}
               {search.trim() !== "" && " found"}
             </p>
-            {filtered.map((match) => (
-              <motion.div key={match.id} variants={itemVariants}>
-                <MatchRow match={match} />
-              </motion.div>
-            ))}
-          </motion.div>
+            <AnimatePresence initial={false}>
+              {filtered.map((match) => (
+                <MatchRow key={match.id} match={match} />
+              ))}
+            </AnimatePresence>
+          </div>
         )}
       </div>
     </div>
