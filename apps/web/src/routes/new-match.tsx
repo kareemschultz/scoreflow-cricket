@@ -141,7 +141,7 @@ function QuickCreateTeamSheet({ open, onOpenChange, onCreated }: QuickCreateTeam
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-2xl pb-8">
+      <SheetContent side="top" className="rounded-b-2xl pt-safe pb-6">
         <SheetHeader className="pb-4">
           <SheetTitle>New Team</SheetTitle>
         </SheetHeader>
@@ -800,7 +800,6 @@ function Step4PlayingXI({
             placeholder="Type player name, then tap Add →"
             value={newPlayerName}
             onChange={(e) => setNewPlayerName(e.target.value)}
-            autoFocus
             className="flex-1 h-10 text-sm"
           />
           <Button

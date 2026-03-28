@@ -139,7 +139,7 @@ function NewTournamentDialog({ open, onClose }: { open: boolean; onClose: () => 
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent>
+      <DialogContent className="max-w-sm mx-4 top-16 translate-y-0 max-h-[80dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>New Tournament</DialogTitle>
         </DialogHeader>

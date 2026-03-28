@@ -85,7 +85,7 @@ function AddEditPlayerDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent showCloseButton>
+      <DialogContent showCloseButton className="max-w-sm mx-4 top-16 translate-y-0 max-h-[80dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editPlayer ? "Edit Player" : "Add Player"}</DialogTitle>
         </DialogHeader>

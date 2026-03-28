@@ -101,7 +101,7 @@ function NewTeamDialog({ open, onOpenChange }: NewTeamDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm mx-4">
+      <DialogContent className="max-w-sm mx-4 top-16 translate-y-0 max-h-[80dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>New Team</DialogTitle>
         </DialogHeader>
@@ -210,7 +210,7 @@ function EditTeamDialog({ team, onClose }: EditTeamDialogProps) {
 
   return (
     <Dialog open={!!team} onOpenChange={(o) => { if (!o) onClose() }}>
-      <DialogContent className="max-w-sm mx-4">
+      <DialogContent className="max-w-sm mx-4 top-16 translate-y-0 max-h-[80dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Team</DialogTitle>
         </DialogHeader>

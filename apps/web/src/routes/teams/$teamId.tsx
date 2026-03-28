@@ -258,7 +258,7 @@ function BulkImportDialog({ teamId, open, onOpenChange }: BulkImportDialogProps)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm mx-4">
+      <DialogContent className="max-w-sm mx-4 top-16 translate-y-0 max-h-[80dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Bulk Import Players</DialogTitle>
         </DialogHeader>
