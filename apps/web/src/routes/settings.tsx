@@ -102,6 +102,13 @@ function SettingsPage() {
 
   // ── Import ───────────────────────────────────────────────────────────────────
 
+  const MAX_IMPORT_MB = 25
+  const MAX_IMPORT_BYTES = MAX_IMPORT_MB * 1024 * 1024
+
+  function isArrayOfObjects(v: unknown): v is Record<string, unknown>[] {
+    return Array.isArray(v) && v.every((x) => typeof x === "object" && x !== null && !Array.isArray(x))
+  }
+
   function handleImport() {
     const input = document.createElement("input")
     input.type = "file"
@@ -109,22 +116,45 @@ function SettingsPage() {
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0]
       if (!file) return
+
+      if (file.size > MAX_IMPORT_BYTES) {
+        alert(`File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed is ${MAX_IMPORT_MB} MB.`)
+        return
+      }
+
       try {
         const text = await file.text()
-        const data = JSON.parse(text)
+        const raw: unknown = JSON.parse(text)
+
+        if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+          alert("Import failed: file must contain a JSON object, not an array or primitive.")
+          return
+        }
+
+        const data = raw as Record<string, unknown>
+
+        // Validate each table's data is an array of objects before writing
+        const tables = ["teams", "players", "matches", "tournaments", "battingStats", "bowlingStats"] as const
+        for (const table of tables) {
+          if (data[table] !== undefined && !isArrayOfObjects(data[table])) {
+            alert(`Import failed: "${table}" must be an array of objects.`)
+            return
+          }
+        }
+
         await db.transaction(
           "rw",
           [db.teams, db.players, db.matches, db.tournaments, db.battingStats, db.bowlingStats],
           async () => {
-            if (data.teams?.length) await db.teams.bulkPut(data.teams)
-            if (data.players?.length) await db.players.bulkPut(data.players)
-            if (data.matches?.length) await db.matches.bulkPut(data.matches)
-            if (data.tournaments?.length)
-              await db.tournaments.bulkPut(data.tournaments)
-            if (data.battingStats?.length)
-              await db.battingStats.bulkPut(data.battingStats)
-            if (data.bowlingStats?.length)
-              await db.bowlingStats.bulkPut(data.bowlingStats)
+            if (isArrayOfObjects(data.teams) && data.teams.length) await db.teams.bulkPut(data.teams as never)
+            if (isArrayOfObjects(data.players) && data.players.length) await db.players.bulkPut(data.players as never)
+            if (isArrayOfObjects(data.matches) && data.matches.length) await db.matches.bulkPut(data.matches as never)
+            if (isArrayOfObjects(data.tournaments) && data.tournaments.length)
+              await db.tournaments.bulkPut(data.tournaments as never)
+            if (isArrayOfObjects(data.battingStats) && data.battingStats.length)
+              await db.battingStats.bulkPut(data.battingStats as never)
+            if (isArrayOfObjects(data.bowlingStats) && data.bowlingStats.length)
+              await db.bowlingStats.bulkPut(data.bowlingStats as never)
           }
         )
         alert("Import successful!")

@@ -120,13 +120,8 @@ export async function getTopBatsmen(
   format: CricketFormat | "ALL" = "ALL",
   limit = 20
 ): Promise<PlayerBattingStats[]> {
-  let query = db.battingStats.orderBy("runs").reverse()
-  if (format !== "ALL") {
-    query = db.battingStats.where("format").equals(format).and((_s) => true) as typeof query
-  }
-  const all = (await query.toArray()) as PlayerBattingStats[]
-  const filtered = format === "ALL" ? all.filter((s) => s.format === "ALL") : all
-  return filtered.slice(0, limit)
+  const all = (await db.battingStats.where("format").equals(format).toArray()) as PlayerBattingStats[]
+  return all.sort((a, b) => b.runs - a.runs).slice(0, limit)
 }
 
 export async function getTopBowlers(

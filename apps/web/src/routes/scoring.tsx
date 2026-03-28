@@ -218,15 +218,19 @@ function ScoringPage() {
   // ── post-ball checks ──────────────────────────────────────────────────────
 
   function checkPostBall() {
-    if (!match) return
-    const latestInnings = match.innings[currentInningsIndex]
+    // Read fresh state after await recordBall — closure `match` is stale at this point
+    const latestState = useScoringStore.getState()
+    const latestMatch = latestState.match
+    if (!latestMatch) return
+    const latestIdx = latestState.currentInningsIndex
+    const latestInnings = latestMatch.innings[latestIdx]
     if (!latestInnings) return
 
     // Check innings complete
     if (isInningsComplete(latestInnings, rules)) {
       const isLastInnings =
-        currentInningsIndex >= match.innings.length - 1 ||
-        (rules.inningsPerSide === 1 && currentInningsIndex >= 1)
+        latestIdx >= latestMatch.innings.length - 1 ||
+        (rules.inningsPerSide === 1 && latestIdx >= 1)
       if (isLastInnings) {
         setShowMatchEndDialog(true)
       } else {
@@ -236,7 +240,7 @@ function ScoringPage() {
     }
 
     // Check if new bowler needed (over just ended)
-    if (useScoringStore.getState().currentBowlerId === null) {
+    if (latestState.currentBowlerId === null) {
       setShowNewBowlerSheet(true)
     }
   }
