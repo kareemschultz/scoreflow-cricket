@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { RotateCcw, ChevronRight } from "lucide-react"
+import { RotateCcw, ChevronRight, Activity } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { useScoringStore } from "@/stores/scoring"
@@ -801,28 +801,46 @@ function ScoringLoader() {
 
   useEffect(() => {
     if (liveMatch === null) return // still loading
-
-    if (!liveMatch) {
-      // query resolved — no live match in DB
-      navigate({ to: "/" })
-      return
-    }
-
-    if (!match || matchId !== liveMatch.id) {
+    if (liveMatch && (!match || matchId !== liveMatch.id)) {
       loadMatch(liveMatch.id)
     }
-  }, [liveMatch, match, matchId, loadMatch, navigate])
+  }, [liveMatch, match, matchId, loadMatch])
 
-  // Only show spinner while match hasn't loaded yet.
-  // Do NOT include isProcessing here — recordBall sets isProcessing:true briefly
-  // on every ball, which would unmount/remount ScoringPage on every tap.
+  // Still querying Dexie
+  if (liveMatch === null) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // No live match in DB — show a clear CTA instead of silently redirecting
+  if (!liveMatch) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 px-6 text-center">
+        <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+          <Activity className="size-7 text-muted-foreground/50" />
+        </div>
+        <div>
+          <p className="font-semibold text-sm">No active match</p>
+          <p className="text-xs text-muted-foreground mt-1">Start a new match to begin scoring</p>
+        </div>
+        <button
+          onClick={() => navigate({ to: "/new-match" })}
+          className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold"
+        >
+          New Match
+        </button>
+      </div>
+    )
+  }
+
+  // Match found but store not hydrated yet
   if (!match) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-        <div className="flex flex-col items-center gap-2">
-          <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <span>Loading match...</span>
-        </div>
+      <div className="flex items-center justify-center h-full">
+        <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
