@@ -4,6 +4,7 @@ import { useLiveQuery } from "dexie-react-hooks"
 import { useState, useEffect } from "react"
 import { Settings, Download, Upload, Trash2, Info, Palette, Sliders, Database } from "lucide-react"
 import { db, getSettings, saveSettings } from "@/db/index"
+import { validateImportPayload, formatValidationErrors } from "@/lib/import-validator"
 import type { AppSettings, CricketFormat } from "@/types/cricket"
 import { DEFAULT_RULES } from "@/types/cricket"
 import { useTheme } from "@/components/theme-provider"
@@ -33,6 +34,10 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 
 // ─── Settings Page ────────────────────────────────────────────────────────────
+
+function isArrayOfObjects(v: unknown): v is Record<string, unknown>[] {
+  return Array.isArray(v) && v.every((x) => typeof x === "object" && x !== null && !Array.isArray(x))
+}
 
 function SettingsPage() {
   const { setTheme } = useTheme()
@@ -105,10 +110,6 @@ function SettingsPage() {
   const MAX_IMPORT_MB = 25
   const MAX_IMPORT_BYTES = MAX_IMPORT_MB * 1024 * 1024
 
-  function isArrayOfObjects(v: unknown): v is Record<string, unknown>[] {
-    return Array.isArray(v) && v.every((x) => typeof x === "object" && x !== null && !Array.isArray(x))
-  }
-
   function handleImport() {
     const input = document.createElement("input")
     input.type = "file"
@@ -140,6 +141,13 @@ function SettingsPage() {
             alert(`Import failed: "${table}" must be an array of objects.`)
             return
           }
+        }
+
+        // Row-level schema validation — reject before any DB writes
+        const rowErrors = validateImportPayload(data)
+        if (rowErrors.length > 0) {
+          alert(formatValidationErrors(rowErrors))
+          return
         }
 
         await db.transaction(
