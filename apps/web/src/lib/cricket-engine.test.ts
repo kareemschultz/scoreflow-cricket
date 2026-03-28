@@ -12,6 +12,7 @@ import {
   getRemainingBalls,
   getRequiredRunRate,
   getCurrentRunRate,
+  getCurrentPartnership,
   buildDismissalText,
   isTied,
   isInningsComplete,
@@ -460,6 +461,41 @@ describe("isTied", () => {
   it("returns false when scores differ", () => {
     expect(isTied(142, 143)).toBe(false)
     expect(isTied(0, 1)).toBe(false)
+  })
+})
+
+// ─── getCurrentPartnership ───────────────────────────────────────────────────
+
+describe("getCurrentPartnership", () => {
+  it("includes extras in partnership runs", () => {
+    const ballLog = [
+      makeBall({ batsmanId: "bat1", runs: 1, batsmanRuns: 1 }),
+      makeBall({ batsmanId: "bat2", runs: 2, batsmanRuns: 2 }),
+      makeBall({
+        batsmanId: "bat1",
+        runs: 1,
+        batsmanRuns: 0,
+        extraRuns: 1,
+        isExtra: true,
+        extraType: "bye",
+      }),
+      makeBall({
+        batsmanId: "bat2",
+        runs: 2,
+        batsmanRuns: 1,
+        extraRuns: 1,
+        isExtra: true,
+        extraType: "noBall",
+        isLegal: false,
+      }),
+    ]
+
+    const p = getCurrentPartnership(ballLog, "bat1", "bat2", 0, 6)
+
+    expect(p.runs).toBe(6)
+    expect(p.batsman1Runs).toBe(1)
+    expect(p.batsman2Runs).toBe(3)
+    expect(p.balls).toBe(3)
   })
 })
 

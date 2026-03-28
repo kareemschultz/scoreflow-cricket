@@ -145,7 +145,8 @@ export async function getTopBowlers(
   format: CricketFormat | "ALL" = "ALL",
   limit = 20
 ): Promise<PlayerBowlingStats[]> {
-  const all = (await db.bowlingStats.orderBy("wickets").reverse().toArray()) as PlayerBowlingStats[]
-  const filtered = format === "ALL" ? all.filter((s) => s.format === "ALL") : all.filter((s) => s.format === format)
-  return filtered.slice(0, limit)
+  const rows = (await db.bowlingStats.where("format").equals(format).toArray()) as PlayerBowlingStats[]
+  return rows
+    .sort((a, b) => b.wickets - a.wickets)
+    .slice(0, limit)
 }

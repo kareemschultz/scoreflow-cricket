@@ -264,6 +264,14 @@ describe("validateImportPayload", () => {
     expect(errors).toHaveLength(0)
   })
 
+  it("errors on match rules with non-positive numeric values", () => {
+    const rules = { oversPerInnings: 0, ballsPerOver: 0, maxWickets: -1 }
+    const errors = validateImportPayload({ matches: [makeMatch({ rules })] })
+    expect(errors.some((e) => e.issue.includes("rules.oversPerInnings must be > 0"))).toBe(true)
+    expect(errors.some((e) => e.issue.includes("rules.ballsPerOver must be > 0"))).toBe(true)
+    expect(errors.some((e) => e.issue.includes("rules.maxWickets must be > 0"))).toBe(true)
+  })
+
   // ── deep validation: innings structure ──
 
   it("errors on match with malformed innings entries", () => {
@@ -297,6 +305,12 @@ describe("validateImportPayload", () => {
 
   it("errors on battingStats with non-number matches/innings", () => {
     const errors = validateImportPayload({ battingStats: [makeBattingStats({ matches: "five", innings: null })] })
+    expect(errors.some((e) => e.issue.includes("matches must be a number"))).toBe(true)
+    expect(errors.some((e) => e.issue.includes("innings must be a number"))).toBe(true)
+  })
+
+  it("errors on bowlingStats with NaN matches/innings", () => {
+    const errors = validateImportPayload({ bowlingStats: [makeBowlingStats({ matches: Number.NaN, innings: Number.NaN })] })
     expect(errors.some((e) => e.issue.includes("matches must be a number"))).toBe(true)
     expect(errors.some((e) => e.issue.includes("innings must be a number"))).toBe(true)
   })

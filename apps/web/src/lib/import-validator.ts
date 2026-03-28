@@ -20,6 +20,10 @@ function isNonEmptyString(v: unknown): v is string {
   return typeof v === "string" && v.trim().length > 0
 }
 
+function isFiniteNumber(v: unknown): v is number {
+  return typeof v === "number" && Number.isFinite(v)
+}
+
 /** Check if a value looks like a valid date (ISO string, Date object, or parseable string) */
 function isValidDate(v: unknown): boolean {
   if (v === undefined || v === null) return false
@@ -34,12 +38,18 @@ function validateMatchRules(
   rules: Record<string, unknown>,
   push: (issue: string) => void
 ): void {
-  if (typeof rules.oversPerInnings !== "number" && rules.oversPerInnings !== null)
+  if (!isFiniteNumber(rules.oversPerInnings) && rules.oversPerInnings !== null)
     push("rules.oversPerInnings must be a number or null")
-  if (typeof rules.ballsPerOver !== "number")
+  if (!isFiniteNumber(rules.ballsPerOver))
     push("rules.ballsPerOver must be a number")
-  if (typeof rules.maxWickets !== "number")
+  if (!isFiniteNumber(rules.maxWickets))
     push("rules.maxWickets must be a number")
+  if (isFiniteNumber(rules.ballsPerOver) && rules.ballsPerOver <= 0)
+    push("rules.ballsPerOver must be > 0")
+  if (isFiniteNumber(rules.maxWickets) && rules.maxWickets <= 0)
+    push("rules.maxWickets must be > 0")
+  if (isFiniteNumber(rules.oversPerInnings) && rules.oversPerInnings <= 0)
+    push("rules.oversPerInnings must be > 0 or null")
 }
 
 /** Validate each innings entry in a match */
@@ -57,8 +67,8 @@ function validateInnings(
     if (!Array.isArray(r.ballLog)) push(`innings[${i}].ballLog must be an array`)
     if (!Array.isArray(r.battingCard)) push(`innings[${i}].battingCard must be an array`)
     if (!Array.isArray(r.bowlingCard)) push(`innings[${i}].bowlingCard must be an array`)
-    if (typeof r.totalRuns !== "number") push(`innings[${i}].totalRuns must be a number`)
-    if (typeof r.totalWickets !== "number") push(`innings[${i}].totalWickets must be a number`)
+    if (!isFiniteNumber(r.totalRuns)) push(`innings[${i}].totalRuns must be a number`)
+    if (!isFiniteNumber(r.totalWickets)) push(`innings[${i}].totalWickets must be a number`)
   }
 }
 
@@ -131,8 +141,8 @@ function validateRow(
       if (!isNonEmptyString(row.playerId)) push("playerId must be a non-empty string")
       if (!STAT_FORMATS.has(row.format as string))
         push(`format must be T20 | ODI | TEST | CUSTOM | ALL (got: ${String(row.format)})`)
-      if (typeof row.matches !== "number") push("matches must be a number")
-      if (typeof row.innings !== "number") push("innings must be a number")
+      if (!isFiniteNumber(row.matches)) push("matches must be a number")
+      if (!isFiniteNumber(row.innings)) push("innings must be a number")
       break
   }
 }

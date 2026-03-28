@@ -250,9 +250,13 @@ function ScoringPage() {
     disabled?: boolean
   } | null
   const nextAction: NextActionType = (() => {
+    const inningsOrdinal = currentInningsIndex + 2
     // Highest priority: innings is complete — show transition action
     if (inningsIsOver && !isLastInnings)
-      return { kind: "innings" as const, label: "Innings complete — start 2nd innings" }
+      return {
+        kind: "innings" as const,
+        label: `Innings complete — start innings ${inningsOrdinal}/${totalExpectedInnings}`,
+      }
     if (inningsIsOver && isLastInnings)
       return { kind: "match-end" as const, label: "Match complete — view results" }
     if (!onStrikeBatsmanId)

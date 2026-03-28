@@ -220,9 +220,7 @@ export function getCurrentPartnership(
   inningsScore: number
 ): Partnership {
   const partnershipBalls = ballLog.filter(
-    (b) =>
-      (b.batsmanId === batsman1Id || b.batsmanId === batsman2Id) &&
-      !b.isExtra
+    (b) => b.batsmanId === batsman1Id || b.batsmanId === batsman2Id
   )
   const runs = partnershipBalls.reduce((sum, b) => sum + b.runs, 0)
   const b1Runs = partnershipBalls
