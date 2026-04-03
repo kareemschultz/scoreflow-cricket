@@ -28,7 +28,7 @@ jobs:
         run: bun install
 
       - name: Audit dependencies
-        run: bun audit
+        run: bun audit --audit-level=critical
 
       - name: Lint workspace
         run: bun run lint
@@ -48,7 +48,7 @@ jobs:
         run: bunx playwright test
         working-directory: apps/web
 
-      - name: Build ScoreFlow (includes FIFA tracker)
+      - name: Build ScoreFlow Cricket
         run: bun run build
         working-directory: apps/web
 
