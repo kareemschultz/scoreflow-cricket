@@ -17,12 +17,12 @@
 
 import { test, expect, Page } from "@playwright/test"
 
-const BASE = "/scoreflow"
+const BASE = "/scoreflow-cricket"
 
 async function clearDb(page: Page) {
   await page.evaluate(() => {
     return new Promise<void>((resolve) => {
-      const req = indexedDB.deleteDatabase("CricketBookDB")
+      const req = indexedDB.deleteDatabase("ScoreFlowCricketDB")
       req.onsuccess = () => resolve()
       req.onerror = () => resolve()
       req.onblocked = () => setTimeout(resolve, 100)
