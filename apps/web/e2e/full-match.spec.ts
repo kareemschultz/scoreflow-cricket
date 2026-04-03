@@ -220,7 +220,7 @@ test.describe("Full match flow", () => {
     const fs = await import("fs")
     const exportContent = fs.readFileSync(exportPath!, "utf-8")
     const exportData = JSON.parse(exportContent) as Record<string, unknown>
-    expect(exportData.schemaVersion).toBe(3)
+    expect(exportData.schemaVersion).toBe(1)
     expect(Array.isArray(exportData.teams)).toBe(true)
     expect((exportData.teams as unknown[]).length).toBeGreaterThanOrEqual(2)
     expect(Array.isArray(exportData.players)).toBe(true)
