@@ -172,6 +172,14 @@ function ChartsContent({ match, activeTab }: { match: Match; activeTab: ChartTab
   const inningsList = ([inn1, inn2].filter(Boolean) as Innings[])
   const teamNamesList = [battingName1, battingName2 ?? ""].filter(Boolean)
 
+  const bowlingName1 = inn1.bowlingTeamId === match.team1Id ? match.team1Name : match.team2Name
+  const bowlingName2 = inn2
+    ? inn2.bowlingTeamId === match.team1Id
+      ? match.team1Name
+      : match.team2Name
+    : undefined
+  const bowlingNamesList = [bowlingName1, bowlingName2 ?? ""].filter(Boolean)
+
   if (activeTab === "dismissals") {
     return (
       <ChartCard
@@ -200,7 +208,7 @@ function ChartsContent({ match, activeTab }: { match: Match; activeTab: ChartTab
         title="Bowler Dot Ball %"
         description="Percentage of legal deliveries that were dot balls — bowlers with ≥6 deliveries only"
       >
-        <BowlerDotBallChart innings={inningsList} teamNames={teamNamesList} />
+        <BowlerDotBallChart innings={inningsList} teamNames={bowlingNamesList} />
       </ChartCard>
     )
   }
