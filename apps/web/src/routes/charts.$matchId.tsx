@@ -2,12 +2,16 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
 import { useState } from "react"
 import { formatMatchDateShort } from "@/lib/date-utils"
-import { ArrowLeft, BarChart2, TrendingUp, Activity } from "lucide-react"
+import { ArrowLeft, BarChart2, TrendingUp, Activity, Target, Users, Zap, Plus } from "lucide-react"
 import { motion } from "framer-motion"
 import { db } from "@/db/index"
 import { ManhattanChart } from "@/components/charts/ManhattanChart"
 import { WormGraph } from "@/components/charts/WormGraph"
 import { RunRateGraph } from "@/components/charts/RunRateGraph"
+import { DismissalChart } from "@/components/charts/DismissalChart"
+import { BatsmanBreakdownChart } from "@/components/charts/BatsmanBreakdownChart"
+import { BowlerDotBallChart } from "@/components/charts/BowlerDotBallChart"
+import { ExtrasChart } from "@/components/charts/ExtrasChart"
 import { Badge } from "@workspace/ui/components/badge"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import type { Innings, Match } from "@/types/cricket"
@@ -40,6 +44,10 @@ const CHART_TABS = [
   { id: "manhattan", label: "Manhattan", icon: BarChart2 },
   { id: "worm", label: "Worm", icon: TrendingUp },
   { id: "runrate", label: "Run Rate", icon: Activity },
+  { id: "dismissals", label: "Wickets", icon: Target },
+  { id: "batting", label: "Batting", icon: Users },
+  { id: "bowling", label: "Bowling", icon: Zap },
+  { id: "extras", label: "Extras", icon: Plus },
 ] as const
 
 type ChartTabId = (typeof CHART_TABS)[number]["id"]
@@ -157,6 +165,53 @@ function ChartsContent({ match, activeTab }: { match: Match; activeTab: ChartTab
           totalBalls={totalBalls}
           height={260}
         />
+      </ChartCard>
+    )
+  }
+
+  const inningsList = ([inn1, inn2].filter(Boolean) as Innings[])
+  const teamNamesList = [battingName1, battingName2 ?? ""].filter(Boolean)
+
+  if (activeTab === "dismissals") {
+    return (
+      <ChartCard
+        title="Dismissal Breakdown"
+        description="How wickets fell — grouped by dismissal type per innings"
+      >
+        <DismissalChart innings={inningsList} teamNames={teamNamesList} />
+      </ChartCard>
+    )
+  }
+
+  if (activeTab === "batting") {
+    return (
+      <ChartCard
+        title="Batsman Scoring Breakdown"
+        description="Balls faced split by dots, fours, sixes, and other scoring shots — batsmen with ≥5 balls only"
+      >
+        <BatsmanBreakdownChart innings={inningsList} teamNames={teamNamesList} />
+      </ChartCard>
+    )
+  }
+
+  if (activeTab === "bowling") {
+    return (
+      <ChartCard
+        title="Bowler Dot Ball %"
+        description="Percentage of legal deliveries that were dot balls — bowlers with ≥6 deliveries only"
+      >
+        <BowlerDotBallChart innings={inningsList} teamNames={teamNamesList} />
+      </ChartCard>
+    )
+  }
+
+  if (activeTab === "extras") {
+    return (
+      <ChartCard
+        title="Extras Summary"
+        description="Wides, no-balls, byes, and leg-byes conceded per innings"
+      >
+        <ExtrasChart innings={inningsList} teamNames={teamNamesList} />
       </ChartCard>
     )
   }
