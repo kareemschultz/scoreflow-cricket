@@ -11,10 +11,12 @@ import {
   ChevronDown,
   ChevronUp,
   Trophy,
+  Printer,
 } from "lucide-react"
 import { useRef, useState } from "react"
 import { db } from "@/db/index"
 import { formatOvers } from "@/lib/cricket-engine"
+import { computeManOfMatch } from "@/lib/stats-calculator"
 import type { Innings, Match } from "@/types/cricket"
 import { BattingCard } from "@/components/scorecard/BattingCard"
 import { BowlingCard } from "@/components/scorecard/BowlingCard"
@@ -157,6 +159,28 @@ function MatchSummaryCard({ match }: { match: Match }) {
         </CardContent>
       </Card>
     </motion.div>
+  )
+}
+
+// ─── Man of the Match Card ────────────────────────────────────────────────────
+
+function ManOfMatchCard({ match }: { match: Match }) {
+  const mom = computeManOfMatch(match)
+  if (!mom) return null
+  return (
+    <div className="mx-4 mb-3 rounded-xl border border-amber-500/30 bg-amber-500/8 p-4 flex items-center gap-3">
+      <Trophy className="size-6 text-amber-400 shrink-0" />
+      <div className="min-w-0">
+        <p className="text-xs text-amber-400/80 font-medium uppercase tracking-wide">Man of the Match</p>
+        <p className="text-base font-bold text-foreground truncate">{mom.playerName}</p>
+        <p className="text-xs text-muted-foreground">{mom.teamName}</p>
+        {(mom.battingSummary || mom.bowlingSummary) && (
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {[mom.battingSummary, mom.bowlingSummary].filter(Boolean).join("  •  ")}
+          </p>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -363,7 +387,7 @@ function ShareButtons({ match, scorecardRef }: { match: Match; scorecardRef: Rea
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
       <Button variant="outline" size="sm" onClick={handleCopy} className="gap-1.5">
         {copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
         {copied ? "Copied!" : "Copy Text"}
@@ -371,6 +395,16 @@ function ShareButtons({ match, scorecardRef }: { match: Match; scorecardRef: Rea
       <Button variant="outline" size="sm" onClick={handleShareImage} disabled={sharing} className="gap-1.5">
         <Share2 className="size-3.5" />
         {sharing ? "Capturing…" : "Share Image"}
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => window.print()}
+        className="gap-1.5"
+        data-print-keep
+      >
+        <Printer className="size-3.5" />
+        Download PDF
       </Button>
     </div>
   )
@@ -506,7 +540,7 @@ function ScorecardPage() {
         ))}
       </div>
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
+      <div className="no-print sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <button
             onClick={() => history.back()}
@@ -530,7 +564,7 @@ function ScorecardPage() {
         </div>
       </div>
 
-      <div id="scorecard-capture" className="px-4 py-4 space-y-4 pb-8" ref={scorecardRef}>
+      <div id="scorecard-print-area" className="px-4 py-4 space-y-4 pb-8" ref={scorecardRef}>
         {/* Match Summary card (completed) or plain result banner (other states) */}
         {match.status === "completed" && match.innings.length >= 2 ? (
           <MatchSummaryCard match={match} />
@@ -541,6 +575,9 @@ function ScorecardPage() {
             {match.result}
           </div>
         ) : null}
+
+        {/* Man of the Match */}
+        {match.status === "completed" && <ManOfMatchCard match={match} />}
 
         {/* Innings tabs */}
         {completedInnings.length > 0 ? (

@@ -166,3 +166,12 @@
     @apply bg-background text-foreground;
     }
 }
+
+@media print {
+  /* Hide navigation, action buttons, and chrome */
+  nav, [data-nav], .no-print { display: none !important; }
+  button:not([data-print-keep]) { display: none !important; }
+  body { background: white !important; color: black !important; }
+  #scorecard-print-area { page-break-inside: avoid; }
+  .scorecard-print-area { page-break-inside: avoid; }
+}

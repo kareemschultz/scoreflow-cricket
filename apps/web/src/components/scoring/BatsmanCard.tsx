@@ -5,9 +5,10 @@ interface BatsmanCardProps {
   batsman: BatsmanEntry
   isOnStrike: boolean
   onSwapStrike?: () => void
+  isCaptain?: boolean
 }
 
-export function BatsmanCard({ batsman, isOnStrike, onSwapStrike }: BatsmanCardProps) {
+export function BatsmanCard({ batsman, isOnStrike, onSwapStrike, isCaptain }: BatsmanCardProps) {
   const sr = batsman.strikeRate.toFixed(1)
   const nameParts = batsman.playerName.split(" ")
   const displayName =
@@ -46,6 +47,7 @@ export function BatsmanCard({ batsman, isOnStrike, onSwapStrike }: BatsmanCardPr
           {isOnStrike && (
             <span className="text-muted-foreground font-normal ml-0.5">*</span>
           )}
+          {isCaptain && <span className="text-muted-foreground text-[10px] font-normal ml-0.5">(c)</span>}
         </span>
       </div>
 

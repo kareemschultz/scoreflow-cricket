@@ -109,7 +109,7 @@ function BottomNav() {
 
   return (
     <nav
-      className="border-t border-border bg-background/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)] relative"
+      className="no-print border-t border-border bg-background/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)] relative"
       style={{ position: "sticky", bottom: 0, zIndex: 50 }}
     >
       <AnimatePresence>

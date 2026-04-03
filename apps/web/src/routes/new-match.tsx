@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useLiveQuery } from "dexie-react-hooks"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useMemo } from "react"
 import {
   ChevronLeft,
   ChevronRight,
@@ -183,7 +183,27 @@ function Step1Teams({ team1Id, team2Id, onSelectTeam1, onSelectTeam2 }: Step1Pro
   const [quickCreateOpen, setQuickCreateOpen] = useState(false)
   const [createFor, setCreateFor] = useState<1 | 2>(1)
 
-  const teams = useLiveQuery(() => db.teams.orderBy("name").toArray())
+  // Use undefined check to detect loading (not ?? [] which hides the loading state)
+  const dbTeams = useLiveQuery(() => db.teams.orderBy("name").toArray())
+  const pastMatches = useLiveQuery(() => db.matches.toArray())
+
+  // Merge: teams from db + teams reconstructed from past matches (for deleted teams)
+  const teams = useMemo<Team[] | undefined>(() => {
+    if (dbTeams === undefined || pastMatches === undefined) return undefined
+    const map = new Map<string, Team>()
+    for (const t of dbTeams) map.set(t.id, t)
+    for (const m of pastMatches) {
+      if (!map.has(m.team1Id)) {
+        map.set(m.team1Id, { id: m.team1Id, name: m.team1Name, createdAt: new Date(m.date) })
+      }
+      if (!map.has(m.team2Id)) {
+        map.set(m.team2Id, { id: m.team2Id, name: m.team2Name, createdAt: new Date(m.date) })
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name))
+  }, [dbTeams, pastMatches])
+
+  const isLoading = teams === undefined
 
   function openQuickCreate(slot: 1 | 2) {
     setCreateFor(slot)
@@ -198,6 +218,28 @@ function Step1Teams({ team1Id, team2Id, onSelectTeam1, onSelectTeam2 }: Step1Pro
   const selectedTeam1 = teams?.find((t) => t.id === team1Id)
   const selectedTeam2 = teams?.find((t) => t.id === team2Id)
 
+  if (isLoading) {
+    return (
+      <div className="px-4 space-y-4">
+        <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-start">
+          <div className="space-y-2">
+            <div className="animate-pulse bg-muted rounded-lg h-10" />
+            <div className="animate-pulse bg-muted rounded-lg h-10" />
+          </div>
+          <div className="pt-6 flex items-center justify-center">
+            <span className="text-xs font-bold text-muted-foreground bg-muted rounded-full size-8 flex items-center justify-center">
+              vs
+            </span>
+          </div>
+          <div className="space-y-2">
+            <div className="animate-pulse bg-muted rounded-lg h-10" />
+            <div className="animate-pulse bg-muted rounded-lg h-10" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="px-4 space-y-4">
       <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-start">
@@ -209,7 +251,7 @@ function Step1Teams({ team1Id, team2Id, onSelectTeam1, onSelectTeam2 }: Step1Pro
           <TeamPicker
             selected={team1Id}
             disabledId={team2Id}
-            teams={teams ?? []}
+            teams={teams}
             onSelect={onSelectTeam1}
             onQuickCreate={() => openQuickCreate(1)}
           />
@@ -238,7 +280,7 @@ function Step1Teams({ team1Id, team2Id, onSelectTeam1, onSelectTeam2 }: Step1Pro
           <TeamPicker
             selected={team2Id}
             disabledId={team1Id}
-            teams={teams ?? []}
+            teams={teams}
             onSelect={onSelectTeam2}
             onQuickCreate={() => openQuickCreate(2)}
           />
@@ -253,7 +295,7 @@ function Step1Teams({ team1Id, team2Id, onSelectTeam1, onSelectTeam2 }: Step1Pro
         </div>
       </div>
 
-      {teams !== undefined && teams.length === 0 && (
+      {!isLoading && teams.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="py-6 text-center">
             <Users className="size-8 text-muted-foreground/40 mx-auto mb-2" />

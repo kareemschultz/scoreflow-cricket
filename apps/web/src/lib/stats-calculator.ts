@@ -411,3 +411,129 @@ export async function updatePlayerStatsFromMatch(match: Match): Promise<void> {
     ])
   })
 }
+
+// ─── Man of the Match ─────────────────────────────────────────────────────────
+
+export interface ManOfMatchResult {
+  playerId: string
+  playerName: string
+  teamName: string
+  battingSummary: string | null   // e.g. "52* (34b) SR 152.9"
+  bowlingSummary: string | null   // e.g. "3/18 in 4 ov"
+  points: number
+}
+
+/**
+ * Compute Man of the Match using a proven points system.
+ * Only considers non-super-over innings.
+ * Returns null if match is not completed or has no innings data.
+ */
+export function computeManOfMatch(match: Match): ManOfMatchResult | null {
+  if (match.status !== "completed") return null
+  if (match.innings.length === 0) return null
+
+  // Build player → team name map from batting cards in all innings
+  const playerTeam = new Map<string, string>()
+  for (const innings of match.innings) {
+    const battingTeamName = innings.battingTeamId === match.team1Id ? match.team1Name : match.team2Name
+    const bowlingTeamName = innings.bowlingTeamId === match.team1Id ? match.team1Name : match.team2Name
+    for (const entry of innings.battingCard) {
+      if (!playerTeam.has(entry.playerId)) playerTeam.set(entry.playerId, battingTeamName)
+    }
+    for (const entry of innings.bowlingCard) {
+      if (!playerTeam.has(entry.playerId)) playerTeam.set(entry.playerId, bowlingTeamName)
+    }
+  }
+
+  // Accumulate points per player across all non-super-over innings
+  const playerPoints = new Map<string, number>()
+  const playerNames = new Map<string, string>()
+
+  // Batting summary data (best innings per player)
+  const playerBatSummary = new Map<string, string>()
+  const playerBowlSummary = new Map<string, string>()
+
+  // Aggregated bowling figures per player (across innings)
+  const playerBowlAgg = new Map<string, { wickets: number; runs: number; legalBalls: number; maidens: number }>()
+
+  for (const innings of match.innings) {
+    // Batting points
+    for (const entry of innings.battingCard) {
+      // Skip players who never batted
+      if (entry.balls === 0 && entry.runs === 0 && !entry.isOut) continue
+
+      const balls = entry.balls
+      const runs = entry.runs
+      const sr = balls > 0 ? (runs / balls) * 100 : 0
+      const srBonus = sr > 100 && balls > 0 ? (sr - 100) / 10 : 0
+      const pts = runs + entry.fours * 1 + entry.sixes * 2 + srBonus
+
+      playerNames.set(entry.playerId, entry.playerName)
+      const prev = playerPoints.get(entry.playerId) ?? 0
+      playerPoints.set(entry.playerId, prev + pts)
+
+      // Build batting summary for highest-scoring innings
+      if (!playerBatSummary.has(entry.playerId) || runs > 0) {
+        const notOut = !entry.isOut && !entry.isRetiredHurt
+        const srStr = balls > 0 ? ` SR ${sr.toFixed(1)}` : ""
+        playerBatSummary.set(
+          entry.playerId,
+          `${runs}${notOut ? "*" : ""} (${balls}b)${srStr}`
+        )
+      }
+    }
+
+    // Bowling accumulation
+    for (const entry of innings.bowlingCard) {
+      const legalBalls = entry.overs * 6 + entry.balls
+      if (legalBalls === 0 && entry.wides === 0 && entry.noBalls === 0) continue
+
+      playerNames.set(entry.playerId, entry.playerName)
+      const agg = playerBowlAgg.get(entry.playerId) ?? { wickets: 0, runs: 0, legalBalls: 0, maidens: 0 }
+      agg.wickets += entry.wickets
+      agg.runs += entry.runs
+      agg.legalBalls += legalBalls
+      agg.maidens += entry.maidens
+      playerBowlAgg.set(entry.playerId, agg)
+    }
+  }
+
+  // Convert bowling aggregates to points and summaries
+  for (const [playerId, agg] of playerBowlAgg.entries()) {
+    const eco = agg.legalBalls > 0 ? (agg.runs / agg.legalBalls) * 6 : 0
+    const ecoBonus = eco < 6 && agg.legalBalls >= 6 ? (6 - eco) * 5 : 0
+    const pts = agg.wickets * 25 + agg.maidens * 10 + ecoBonus
+
+    const prev = playerPoints.get(playerId) ?? 0
+    playerPoints.set(playerId, prev + pts)
+
+    // Build bowling summary
+    const overs = Math.floor(agg.legalBalls / 6)
+    const balls = agg.legalBalls % 6
+    const oversStr = balls > 0 ? `${overs}.${balls}` : `${overs}`
+    playerBowlSummary.set(playerId, `${agg.wickets}/${agg.runs} in ${oversStr} ov`)
+  }
+
+  if (playerPoints.size === 0) return null
+
+  // Winner = highest points
+  let bestId = ""
+  let bestPts = -Infinity
+  for (const [pid, pts] of playerPoints.entries()) {
+    if (pts > bestPts) {
+      bestPts = pts
+      bestId = pid
+    }
+  }
+
+  if (!bestId) return null
+
+  return {
+    playerId: bestId,
+    playerName: playerNames.get(bestId) ?? bestId,
+    teamName: playerTeam.get(bestId) ?? "",
+    battingSummary: playerBatSummary.get(bestId) ?? null,
+    bowlingSummary: playerBowlSummary.get(bestId) ?? null,
+    points: bestPts,
+  }
+}

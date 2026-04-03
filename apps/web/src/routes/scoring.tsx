@@ -31,6 +31,7 @@ import { PartnershipBar } from "@/components/scoring/PartnershipBar"
 import { RunPickerDialog } from "@/components/scoring/RunPickerDialog"
 import { InningsBreakOverlay } from "@/components/scoring/InningsBreakOverlay"
 import { MatchResultOverlay } from "@/components/scoring/MatchResultOverlay"
+import { UndoPreviewDialog } from "@/components/scoring/UndoPreviewDialog"
 
 import {
   Sheet,
@@ -89,6 +90,7 @@ function ScoringPage({ match }: { match: Match }) {
   const [lbPickerOpen, setLbPickerOpen] = useState(false)
   const [otPickerOpen, setOtPickerOpen] = useState(false)
   const [showUndoSheet, setShowUndoSheet] = useState(false)
+  const [undoPreviewOpen, setUndoPreviewOpen] = useState(false)
   const [scoreFlash, setScoreFlash] = useState<"boundary" | "six" | "wicket" | null>(null)
   const [flashKey, setFlashKey] = useState(0)
 
@@ -208,7 +210,6 @@ function ScoringPage({ match }: { match: Match }) {
     handleNewBatsmanSelect,
     handleStartNextInnings,
     handleEndMatch,
-    handleUndo,
   } = useScoringHandlers(
     {
       match, innings, rules, currentInningsIndex, currentOver,
@@ -443,6 +444,11 @@ function ScoringPage({ match }: { match: Match }) {
             batsman={striker}
             isOnStrike={true}
             onSwapStrike={nonStriker ? swapStrike : undefined}
+            isCaptain={
+              innings.battingTeamId === match.team1Id
+                ? striker.playerId === match.captainTeam1Id
+                : striker.playerId === match.captainTeam2Id
+            }
           />
         ) : (
           <div className="px-3 py-2 text-sm text-muted-foreground italic">
@@ -454,6 +460,11 @@ function ScoringPage({ match }: { match: Match }) {
             batsman={nonStriker}
             isOnStrike={false}
             onSwapStrike={striker ? swapStrike : undefined}
+            isCaptain={
+              innings.battingTeamId === match.team1Id
+                ? nonStriker.playerId === match.captainTeam1Id
+                : nonStriker.playerId === match.captainTeam2Id
+            }
           />
         ) : (
           <div className="px-3 py-1.5 text-xs text-muted-foreground italic">
@@ -473,7 +484,16 @@ function ScoringPage({ match }: { match: Match }) {
       )}
 
       {/* ── Bowler card ── */}
-      {currentBowler && <BowlerCard bowler={currentBowler} />}
+      {currentBowler && (
+        <BowlerCard
+          bowler={currentBowler}
+          isCaptain={
+            innings.bowlingTeamId === match.team1Id
+              ? currentBowler.playerId === match.captainTeam1Id
+              : currentBowler.playerId === match.captainTeam2Id
+          }
+        />
+      )}
       {!currentBowler && innings.ballLog.length > 0 && (
         <div className="px-3 py-1.5 text-xs text-muted-foreground italic border-b border-border/50 bg-muted/20">
           Tap “Select bowler for next over” to continue
@@ -672,7 +692,7 @@ function ScoringPage({ match }: { match: Match }) {
           </button>
           <button
             disabled={isProcessing || innings.ballLog.length === 0}
-            onClick={handleUndo}
+            onClick={() => { haptic(); setUndoPreviewOpen(true) }}
             onContextMenu={(e) => {
               if (overBalls.length > 1) {
                 e.preventDefault()
@@ -785,6 +805,15 @@ function ScoringPage({ match }: { match: Match }) {
         targetTeamName={targetTeamName}
         target={innings.totalRuns + 1}
         onStartInnings={handleStartNextInnings}
+      />
+
+      {/* Undo preview dialog */}
+      <UndoPreviewDialog
+        open={undoPreviewOpen}
+        onClose={() => setUndoPreviewOpen(false)}
+        onConfirm={(steps) => { void undoNBalls(steps) }}
+        innings={innings}
+        ballsPerOver={rules.ballsPerOver}
       />
 
       {/* Multi-undo sheet */}
