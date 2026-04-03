@@ -76,9 +76,6 @@ function SettingsPage() {
   async function handleExport() {
     const [
       teams, players, matches, tournaments, battingStats, bowlingStats,
-      fifaPlayers, fifaMatches,
-      dominoPlayers, dominoTeams, dominoMatches, dominoTournaments,
-      trumpPlayers, trumpTeams, trumpMatches, trumpTournaments,
       settingsRows,
     ] = await Promise.all([
       db.teams.toArray(),
@@ -87,24 +84,11 @@ function SettingsPage() {
       db.tournaments.toArray(),
       db.battingStats.toArray(),
       db.bowlingStats.toArray(),
-      db.fifaPlayers.toArray(),
-      db.fifaMatches.toArray(),
-      db.dominoPlayers.toArray(),
-      db.dominoTeams.toArray(),
-      db.dominoMatches.toArray(),
-      db.dominoTournaments.toArray(),
-      db.trumpPlayers.toArray(),
-      db.trumpTeams.toArray(),
-      db.trumpMatches.toArray(),
-      db.trumpTournaments.toArray(),
       db.settings.toArray(),
     ])
 
     const tables = {
       teams, players, matches, tournaments, battingStats, bowlingStats,
-      fifaPlayers, fifaMatches,
-      dominoPlayers, dominoTeams, dominoMatches, dominoTournaments,
-      trumpPlayers, trumpTeams, trumpMatches, trumpTournaments,
       settings: settingsRows,
     }
 
@@ -125,7 +109,7 @@ function SettingsPage() {
     const payload: ExportPayload = {
       exportedAt: new Date().toISOString(),
       version: "1.0.0",
-      schemaVersion: 3,
+      schemaVersion: 1,
       integrity: { algorithm: "sha256", hash },
       ...tables,
     }
@@ -181,9 +165,7 @@ function SettingsPage() {
         const errors = validateImportPayload(data)
         const TABLES = [
           "teams", "players", "matches", "tournaments", "battingStats", "bowlingStats",
-          "settings", "fifaPlayers", "fifaMatches",
-          "dominoPlayers", "dominoTeams", "dominoMatches", "dominoTournaments",
-          "trumpPlayers", "trumpTeams", "trumpMatches", "trumpTournaments",
+          "settings",
         ] as const
         const counts = Object.fromEntries(
           TABLES.map((t) => [t, Array.isArray(data[t]) ? (data[t] as unknown[]).length : 0])
@@ -197,12 +179,12 @@ function SettingsPage() {
   function handleImportDirect(mode: ImportMode = "replace") {
     pickAndParseFile(
       async (data) => {
-        // Warn about schema version mismatch but don't block (accept v1-v3)
+        // Warn about schema version mismatch but don't block
         const exportedVersion = typeof data.schemaVersion === "number" ? data.schemaVersion : 1
-        if (exportedVersion > 3) {
+        if (exportedVersion > 1) {
           const proceed = window.confirm(
             `This backup was exported with schema version ${exportedVersion}. ` +
-            `Current app uses version 3. Rows may not import correctly. Continue?`
+            `Current app uses version 1. Rows may not import correctly. Continue?`
           )
           if (!proceed) return
         }
@@ -254,9 +236,6 @@ function SettingsPage() {
             "rw",
             [
               db.teams, db.players, db.matches, db.tournaments, db.battingStats, db.bowlingStats,
-              db.fifaPlayers, db.fifaMatches,
-              db.dominoPlayers, db.dominoTeams, db.dominoMatches, db.dominoTournaments,
-              db.trumpPlayers, db.trumpTeams, db.trumpMatches, db.trumpTournaments,
               db.settings,
             ],
             async () => {
@@ -289,16 +268,6 @@ function SettingsPage() {
               await writeTable(db.tournaments, (data.tournaments as unknown[]) ?? [])
               await writeTable(db.battingStats, (data.battingStats as unknown[]) ?? [])
               await writeTable(db.bowlingStats, (data.bowlingStats as unknown[]) ?? [])
-              await writeTable(db.fifaPlayers, (data.fifaPlayers as unknown[]) ?? [])
-              await writeTable(db.fifaMatches, (data.fifaMatches as unknown[]) ?? [])
-              await writeTable(db.dominoPlayers, (data.dominoPlayers as unknown[]) ?? [])
-              await writeTable(db.dominoTeams, (data.dominoTeams as unknown[]) ?? [])
-              await writeTable(db.dominoMatches, (data.dominoMatches as unknown[]) ?? [])
-              await writeTable(db.dominoTournaments, (data.dominoTournaments as unknown[]) ?? [])
-              await writeTable(db.trumpPlayers, (data.trumpPlayers as unknown[]) ?? [])
-              await writeTable(db.trumpTeams, (data.trumpTeams as unknown[]) ?? [])
-              await writeTable(db.trumpMatches, (data.trumpMatches as unknown[]) ?? [])
-              await writeTable(db.trumpTournaments, (data.trumpTournaments as unknown[]) ?? [])
               await writeTable(db.settings, (data.settings as unknown[]) ?? [])
             }
           )
@@ -318,9 +287,6 @@ function SettingsPage() {
       "rw",
       [
         db.teams, db.players, db.matches, db.tournaments, db.battingStats, db.bowlingStats,
-        db.fifaPlayers, db.fifaMatches,
-        db.dominoPlayers, db.dominoTeams, db.dominoMatches, db.dominoTournaments,
-        db.trumpPlayers, db.trumpTeams, db.trumpMatches, db.trumpTournaments,
         db.settings,
       ],
       async () => {
@@ -331,16 +297,6 @@ function SettingsPage() {
           db.tournaments.clear(),
           db.battingStats.clear(),
           db.bowlingStats.clear(),
-          db.fifaPlayers.clear(),
-          db.fifaMatches.clear(),
-          db.dominoPlayers.clear(),
-          db.dominoTeams.clear(),
-          db.dominoMatches.clear(),
-          db.dominoTournaments.clear(),
-          db.trumpPlayers.clear(),
-          db.trumpTeams.clear(),
-          db.trumpMatches.clear(),
-          db.trumpTournaments.clear(),
           db.settings.clear(),
         ])
       }
@@ -720,7 +676,7 @@ function SettingsPage() {
           <CardContent className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">App name</span>
-              <span className="text-sm font-medium">ScoreFlow</span>
+              <span className="text-sm font-medium">ScoreFlow Cricket</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Version</span>

@@ -34,37 +34,14 @@ function makeMatch(overrides: Record<string, unknown> = {}) {
 function makeTournament(overrides: Record<string, unknown> = {}) {
   return { id: "tr1", name: "Cup 2024", format: "ROUND_ROBIN", status: "upcoming", fixtures: [], ...overrides }
 }
-function makeDominoTournament(overrides: Record<string, unknown> = {}) {
-  return {
-    id: "dt1",
-    name: "Domino Cup",
-    format: "ROUND_ROBIN",
-    status: "upcoming",
-    teamIds: ["dt-a", "dt-b"],
-    fixtures: [],
-    pointsPerWin: 2,
-    pointsPerAbandoned: 1,
-    ...overrides,
-  }
-}
-function makeTrumpTournament(overrides: Record<string, unknown> = {}) {
-  return {
-    id: "tt1",
-    name: "Trump Cup",
-    format: "ROUND_ROBIN",
-    status: "upcoming",
-    teamIds: ["tt-a", "tt-b"],
-    fixtures: [],
-    pointsPerWin: 2,
-    pointsPerAbandoned: 1,
-    ...overrides,
-  }
-}
 function makeBattingStats(overrides: Record<string, unknown> = {}) {
   return { id: "p1_T20", playerId: "p1", format: "T20", matches: 5, innings: 5, ...overrides }
 }
 function makeBowlingStats(overrides: Record<string, unknown> = {}) {
   return { id: "p1_ALL", playerId: "p1", format: "ALL", matches: 3, innings: 3, ...overrides }
+}
+function makeSettings(overrides: Record<string, unknown> = {}) {
+  return { id: "global", theme: "dark", hapticFeedback: true, wakeLock: true, ...overrides }
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -76,8 +53,6 @@ describe("validateImportPayload", () => {
       players: [makePlayer()],
       matches: [makeMatch()],
       tournaments: [makeTournament()],
-      dominoTournaments: [makeDominoTournament()],
-      trumpTournaments: [makeTrumpTournament()],
       battingStats: [makeBattingStats()],
       bowlingStats: [makeBowlingStats()],
     }
@@ -160,16 +135,6 @@ describe("validateImportPayload", () => {
   it("errors on tournament with invalid status", () => {
     const errors = validateImportPayload({ tournaments: [makeTournament({ status: "archived" })] })
     expect(errors.some((e) => e.issue.includes("status"))).toBe(true)
-  })
-
-  it("errors on domino tournament with invalid format", () => {
-    const errors = validateImportPayload({ dominoTournaments: [makeDominoTournament({ format: "GROUPS" })] })
-    expect(errors.some((e) => e.table === "dominoTournaments" && e.issue.includes("format"))).toBe(true)
-  })
-
-  it("errors on trump tournament with invalid status", () => {
-    const errors = validateImportPayload({ trumpTournaments: [makeTrumpTournament({ status: "archived" })] })
-    expect(errors.some((e) => e.table === "trumpTournaments" && e.issue.includes("status"))).toBe(true)
   })
 
   // ── battingStats / bowlingStats ──
@@ -408,93 +373,6 @@ describe("validateImportPayload", () => {
     expect(errors.some((e) => e.issue.includes("rules.wideRuns must be >= 0"))).toBe(true)
   })
 
-  // ── FIFA tables ─────────────────────────────────────────────────────────────
-
-  it("returns no errors for valid FIFA data", () => {
-    const payload = {
-      fifaPlayers: [makeFifaPlayer()],
-      fifaMatches: [makeFifaMatch()],
-    }
-    expect(validateImportPayload(payload)).toHaveLength(0)
-  })
-
-  it("errors on fifaPlayers missing colorHex", () => {
-    const errors = validateImportPayload({ fifaPlayers: [makeFifaPlayer({ colorHex: "" })] })
-    expect(errors.some((e) => e.issue.includes("colorHex"))).toBe(true)
-  })
-
-  it("errors on fifaMatches with negative score", () => {
-    const errors = validateImportPayload({ fifaMatches: [makeFifaMatch({ player1Score: -1 })] })
-    expect(errors.some((e) => e.issue.includes("player1Score must be >= 0"))).toBe(true)
-  })
-
-  it("errors on fifaMatches with NaN score", () => {
-    const errors = validateImportPayload({ fifaMatches: [makeFifaMatch({ player2Score: NaN })] })
-    expect(errors.some((e) => e.issue.includes("player2Score must be a number"))).toBe(true)
-  })
-
-  it("errors on fifaMatches missing player2Id", () => {
-    const errors = validateImportPayload({ fifaMatches: [makeFifaMatch({ player2Id: "" })] })
-    expect(errors.some((e) => e.issue.includes("player2Id"))).toBe(true)
-  })
-
-  // ── Dominoes tables ─────────────────────────────────────────────────────────
-
-  it("returns no errors for valid Dominoes data", () => {
-    const payload = {
-      dominoPlayers: [makeDominoPlayer()],
-      dominoTeams: [makeDominoTeam()],
-      dominoMatches: [makeDominoMatch()],
-    }
-    expect(validateImportPayload(payload)).toHaveLength(0)
-  })
-
-  it("errors on dominoTeams missing player1Id", () => {
-    const errors = validateImportPayload({ dominoTeams: [makeDominoTeam({ player1Id: "" })] })
-    expect(errors.some((e) => e.issue.includes("player1Id"))).toBe(true)
-  })
-
-  it("errors on dominoMatches with invalid scoringMode", () => {
-    const errors = validateImportPayload({ dominoMatches: [makeDominoMatch({ scoringMode: "tricks" })] })
-    expect(errors.some((e) => e.issue.includes("scoringMode must be hands | points"))).toBe(true)
-  })
-
-  it("errors on dominoMatches with non-positive targetHands", () => {
-    const errors = validateImportPayload({ dominoMatches: [makeDominoMatch({ targetHands: 0 })] })
-    expect(errors.some((e) => e.issue.includes("targetHands must be > 0"))).toBe(true)
-  })
-
-  it("errors on dominoMatches with invalid status", () => {
-    const errors = validateImportPayload({ dominoMatches: [makeDominoMatch({ status: "paused" })] })
-    expect(errors.some((e) => e.issue.includes("status must be live | completed | abandoned"))).toBe(true)
-  })
-
-  // ── Trump tables ────────────────────────────────────────────────────────────
-
-  it("returns no errors for valid Trump data", () => {
-    const payload = {
-      trumpPlayers: [makeTrumpPlayer()],
-      trumpTeams: [makeTrumpTeam()],
-      trumpMatches: [makeTrumpMatch()],
-    }
-    expect(validateImportPayload(payload)).toHaveLength(0)
-  })
-
-  it("errors on trumpMatches with non-positive targetScore", () => {
-    const errors = validateImportPayload({ trumpMatches: [makeTrumpMatch({ targetScore: -5 })] })
-    expect(errors.some((e) => e.issue.includes("targetScore must be > 0"))).toBe(true)
-  })
-
-  it("errors on trumpMatches with invalid status", () => {
-    const errors = validateImportPayload({ trumpMatches: [makeTrumpMatch({ status: "cancelled" })] })
-    expect(errors.some((e) => e.issue.includes("status must be live | completed | abandoned"))).toBe(true)
-  })
-
-  it("errors on trumpTeams missing colorHex", () => {
-    const errors = validateImportPayload({ trumpTeams: [makeTrumpTeam({ colorHex: "" })] })
-    expect(errors.some((e) => e.issue.includes("colorHex"))).toBe(true)
-  })
-
   // ── Settings table ──────────────────────────────────────────────────────────
 
   it("returns no errors for valid settings row", () => {
@@ -512,7 +390,7 @@ describe("validateImportPayload", () => {
     expect(errors.some((e) => e.issue.includes("hapticFeedback must be a boolean"))).toBe(true)
   })
 
-  it("returns no errors for valid full payload with all 15 tables", () => {
+  it("returns no errors for valid full cricket payload", () => {
     const payload = {
       teams: [makeTeam()],
       players: [makePlayer()],
@@ -520,55 +398,8 @@ describe("validateImportPayload", () => {
       tournaments: [makeTournament()],
       battingStats: [makeBattingStats()],
       bowlingStats: [makeBowlingStats()],
-      fifaPlayers: [makeFifaPlayer()],
-      fifaMatches: [makeFifaMatch()],
-      dominoPlayers: [makeDominoPlayer()],
-      dominoTeams: [makeDominoTeam()],
-      dominoMatches: [makeDominoMatch()],
-      trumpPlayers: [makeTrumpPlayer()],
-      trumpTeams: [makeTrumpTeam()],
-      trumpMatches: [makeTrumpMatch()],
       settings: [makeSettings()],
     }
     expect(validateImportPayload(payload)).toHaveLength(0)
   })
 })
-
-// ─── New table factories ───────────────────────────────────────────────────────
-
-function makeFifaPlayer(overrides: Record<string, unknown> = {}) {
-  return { id: "fp1", name: "Alice", colorHex: "#ff0000", ...overrides }
-}
-function makeFifaMatch(overrides: Record<string, unknown> = {}) {
-  return { id: "fm1", player1Id: "fp1", player2Id: "fp2", player1Score: 3, player2Score: 1, date: "2025-01-01", ...overrides }
-}
-function makeDominoPlayer(overrides: Record<string, unknown> = {}) {
-  return { id: "dp1", name: "Bob", colorHex: "#00ff00", ...overrides }
-}
-function makeDominoTeam(overrides: Record<string, unknown> = {}) {
-  return { id: "dt1", name: "Sharks", player1Id: "dp1", player2Id: "dp2", colorHex: "#0000ff", ...overrides }
-}
-function makeDominoMatch(overrides: Record<string, unknown> = {}) {
-  return {
-    id: "dm1", team1Id: "dt1", team2Id: "dt2",
-    scoringMode: "hands", targetHands: 6, targetPoints: 200,
-    hands: [], team1Score: 4, team2Score: 2, status: "completed",
-    ...overrides,
-  }
-}
-function makeTrumpPlayer(overrides: Record<string, unknown> = {}) {
-  return { id: "tp1", name: "Carol", colorHex: "#ff00ff", ...overrides }
-}
-function makeTrumpTeam(overrides: Record<string, unknown> = {}) {
-  return { id: "tt1", name: "Kings", player1Id: "tp1", player2Id: "tp2", colorHex: "#ffff00", ...overrides }
-}
-function makeTrumpMatch(overrides: Record<string, unknown> = {}) {
-  return {
-    id: "trm1", team1Id: "tt1", team2Id: "tt2",
-    targetScore: 14, hands: [], team1Score: 14, team2Score: 8, status: "completed",
-    ...overrides,
-  }
-}
-function makeSettings(overrides: Record<string, unknown> = {}) {
-  return { id: "global", theme: "dark", hapticFeedback: true, wakeLock: true, ...overrides }
-}

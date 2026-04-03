@@ -275,7 +275,7 @@ function HomePage() {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold tracking-tight">ScoreFlow</h1>
+            <h1 className="text-lg font-bold tracking-tight">ScoreFlow Cricket</h1>
             <p className="text-xs text-muted-foreground">
               {new Intl.DateTimeFormat("en-GY", { timeZone: "America/Guyana", weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date())}
             </p>

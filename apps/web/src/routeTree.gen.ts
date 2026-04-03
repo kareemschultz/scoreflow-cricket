@@ -15,31 +15,14 @@ import { Route as RecordsRouteImport } from './routes/records'
 import { Route as NewMatchRouteImport } from './routes/new-match'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TrumpIndexRouteImport } from './routes/trump/index'
 import { Route as TournamentsIndexRouteImport } from './routes/tournaments/index'
 import { Route as TeamsIndexRouteImport } from './routes/teams/index'
 import { Route as StatsIndexRouteImport } from './routes/stats/index'
-import { Route as FifaIndexRouteImport } from './routes/fifa/index'
-import { Route as DominoesIndexRouteImport } from './routes/dominoes/index'
 import { Route as TournamentsTournamentIdRouteImport } from './routes/tournaments/$tournamentId'
 import { Route as TeamsTeamIdRouteImport } from './routes/teams/$teamId'
 import { Route as StatsPlayerIdRouteImport } from './routes/stats/$playerId'
 import { Route as ScorecardMatchIdRouteImport } from './routes/scorecard.$matchId'
 import { Route as ChartsMatchIdRouteImport } from './routes/charts.$matchId'
-import { Route as TrumpTournamentsIndexRouteImport } from './routes/trump/tournaments/index'
-import { Route as TrumpTeamsIndexRouteImport } from './routes/trump/teams/index'
-import { Route as TrumpMatchesIndexRouteImport } from './routes/trump/matches/index'
-import { Route as FifaPlayersIndexRouteImport } from './routes/fifa/players/index'
-import { Route as FifaMatchesIndexRouteImport } from './routes/fifa/matches/index'
-import { Route as DominoesTournamentsIndexRouteImport } from './routes/dominoes/tournaments/index'
-import { Route as DominoesTeamsIndexRouteImport } from './routes/dominoes/teams/index'
-import { Route as DominoesMatchesIndexRouteImport } from './routes/dominoes/matches/index'
-import { Route as TrumpTournamentsTournamentIdRouteImport } from './routes/trump/tournaments/$tournamentId'
-import { Route as TrumpMatchesNewRouteImport } from './routes/trump/matches/new'
-import { Route as FifaPlayersPlayerIdRouteImport } from './routes/fifa/players/$playerId'
-import { Route as FifaMatchesNewRouteImport } from './routes/fifa/matches/new'
-import { Route as DominoesTournamentsTournamentIdRouteImport } from './routes/dominoes/tournaments/$tournamentId'
-import { Route as DominoesMatchesNewRouteImport } from './routes/dominoes/matches/new'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -71,11 +54,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TrumpIndexRoute = TrumpIndexRouteImport.update({
-  id: '/trump/',
-  path: '/trump/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TournamentsIndexRoute = TournamentsIndexRouteImport.update({
   id: '/tournaments/',
   path: '/tournaments/',
@@ -89,16 +67,6 @@ const TeamsIndexRoute = TeamsIndexRouteImport.update({
 const StatsIndexRoute = StatsIndexRouteImport.update({
   id: '/stats/',
   path: '/stats/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FifaIndexRoute = FifaIndexRouteImport.update({
-  id: '/fifa/',
-  path: '/fifa/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DominoesIndexRoute = DominoesIndexRouteImport.update({
-  id: '/dominoes/',
-  path: '/dominoes/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TournamentsTournamentIdRoute = TournamentsTournamentIdRouteImport.update({
@@ -126,79 +94,6 @@ const ChartsMatchIdRoute = ChartsMatchIdRouteImport.update({
   path: '/charts/$matchId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TrumpTournamentsIndexRoute = TrumpTournamentsIndexRouteImport.update({
-  id: '/trump/tournaments/',
-  path: '/trump/tournaments/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TrumpTeamsIndexRoute = TrumpTeamsIndexRouteImport.update({
-  id: '/trump/teams/',
-  path: '/trump/teams/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TrumpMatchesIndexRoute = TrumpMatchesIndexRouteImport.update({
-  id: '/trump/matches/',
-  path: '/trump/matches/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FifaPlayersIndexRoute = FifaPlayersIndexRouteImport.update({
-  id: '/fifa/players/',
-  path: '/fifa/players/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FifaMatchesIndexRoute = FifaMatchesIndexRouteImport.update({
-  id: '/fifa/matches/',
-  path: '/fifa/matches/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DominoesTournamentsIndexRoute =
-  DominoesTournamentsIndexRouteImport.update({
-    id: '/dominoes/tournaments/',
-    path: '/dominoes/tournaments/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const DominoesTeamsIndexRoute = DominoesTeamsIndexRouteImport.update({
-  id: '/dominoes/teams/',
-  path: '/dominoes/teams/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DominoesMatchesIndexRoute = DominoesMatchesIndexRouteImport.update({
-  id: '/dominoes/matches/',
-  path: '/dominoes/matches/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TrumpTournamentsTournamentIdRoute =
-  TrumpTournamentsTournamentIdRouteImport.update({
-    id: '/trump/tournaments/$tournamentId',
-    path: '/trump/tournaments/$tournamentId',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const TrumpMatchesNewRoute = TrumpMatchesNewRouteImport.update({
-  id: '/trump/matches/new',
-  path: '/trump/matches/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FifaPlayersPlayerIdRoute = FifaPlayersPlayerIdRouteImport.update({
-  id: '/fifa/players/$playerId',
-  path: '/fifa/players/$playerId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FifaMatchesNewRoute = FifaMatchesNewRouteImport.update({
-  id: '/fifa/matches/new',
-  path: '/fifa/matches/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DominoesTournamentsTournamentIdRoute =
-  DominoesTournamentsTournamentIdRouteImport.update({
-    id: '/dominoes/tournaments/$tournamentId',
-    path: '/dominoes/tournaments/$tournamentId',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const DominoesMatchesNewRoute = DominoesMatchesNewRouteImport.update({
-  id: '/dominoes/matches/new',
-  path: '/dominoes/matches/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -212,26 +107,9 @@ export interface FileRoutesByFullPath {
   '/stats/$playerId': typeof StatsPlayerIdRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
   '/tournaments/$tournamentId': typeof TournamentsTournamentIdRoute
-  '/dominoes/': typeof DominoesIndexRoute
-  '/fifa/': typeof FifaIndexRoute
   '/stats/': typeof StatsIndexRoute
   '/teams/': typeof TeamsIndexRoute
   '/tournaments/': typeof TournamentsIndexRoute
-  '/trump/': typeof TrumpIndexRoute
-  '/dominoes/matches/new': typeof DominoesMatchesNewRoute
-  '/dominoes/tournaments/$tournamentId': typeof DominoesTournamentsTournamentIdRoute
-  '/fifa/matches/new': typeof FifaMatchesNewRoute
-  '/fifa/players/$playerId': typeof FifaPlayersPlayerIdRoute
-  '/trump/matches/new': typeof TrumpMatchesNewRoute
-  '/trump/tournaments/$tournamentId': typeof TrumpTournamentsTournamentIdRoute
-  '/dominoes/matches/': typeof DominoesMatchesIndexRoute
-  '/dominoes/teams/': typeof DominoesTeamsIndexRoute
-  '/dominoes/tournaments/': typeof DominoesTournamentsIndexRoute
-  '/fifa/matches/': typeof FifaMatchesIndexRoute
-  '/fifa/players/': typeof FifaPlayersIndexRoute
-  '/trump/matches/': typeof TrumpMatchesIndexRoute
-  '/trump/teams/': typeof TrumpTeamsIndexRoute
-  '/trump/tournaments/': typeof TrumpTournamentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -245,26 +123,9 @@ export interface FileRoutesByTo {
   '/stats/$playerId': typeof StatsPlayerIdRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
   '/tournaments/$tournamentId': typeof TournamentsTournamentIdRoute
-  '/dominoes': typeof DominoesIndexRoute
-  '/fifa': typeof FifaIndexRoute
   '/stats': typeof StatsIndexRoute
   '/teams': typeof TeamsIndexRoute
   '/tournaments': typeof TournamentsIndexRoute
-  '/trump': typeof TrumpIndexRoute
-  '/dominoes/matches/new': typeof DominoesMatchesNewRoute
-  '/dominoes/tournaments/$tournamentId': typeof DominoesTournamentsTournamentIdRoute
-  '/fifa/matches/new': typeof FifaMatchesNewRoute
-  '/fifa/players/$playerId': typeof FifaPlayersPlayerIdRoute
-  '/trump/matches/new': typeof TrumpMatchesNewRoute
-  '/trump/tournaments/$tournamentId': typeof TrumpTournamentsTournamentIdRoute
-  '/dominoes/matches': typeof DominoesMatchesIndexRoute
-  '/dominoes/teams': typeof DominoesTeamsIndexRoute
-  '/dominoes/tournaments': typeof DominoesTournamentsIndexRoute
-  '/fifa/matches': typeof FifaMatchesIndexRoute
-  '/fifa/players': typeof FifaPlayersIndexRoute
-  '/trump/matches': typeof TrumpMatchesIndexRoute
-  '/trump/teams': typeof TrumpTeamsIndexRoute
-  '/trump/tournaments': typeof TrumpTournamentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -279,26 +140,9 @@ export interface FileRoutesById {
   '/stats/$playerId': typeof StatsPlayerIdRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
   '/tournaments/$tournamentId': typeof TournamentsTournamentIdRoute
-  '/dominoes/': typeof DominoesIndexRoute
-  '/fifa/': typeof FifaIndexRoute
   '/stats/': typeof StatsIndexRoute
   '/teams/': typeof TeamsIndexRoute
   '/tournaments/': typeof TournamentsIndexRoute
-  '/trump/': typeof TrumpIndexRoute
-  '/dominoes/matches/new': typeof DominoesMatchesNewRoute
-  '/dominoes/tournaments/$tournamentId': typeof DominoesTournamentsTournamentIdRoute
-  '/fifa/matches/new': typeof FifaMatchesNewRoute
-  '/fifa/players/$playerId': typeof FifaPlayersPlayerIdRoute
-  '/trump/matches/new': typeof TrumpMatchesNewRoute
-  '/trump/tournaments/$tournamentId': typeof TrumpTournamentsTournamentIdRoute
-  '/dominoes/matches/': typeof DominoesMatchesIndexRoute
-  '/dominoes/teams/': typeof DominoesTeamsIndexRoute
-  '/dominoes/tournaments/': typeof DominoesTournamentsIndexRoute
-  '/fifa/matches/': typeof FifaMatchesIndexRoute
-  '/fifa/players/': typeof FifaPlayersIndexRoute
-  '/trump/matches/': typeof TrumpMatchesIndexRoute
-  '/trump/teams/': typeof TrumpTeamsIndexRoute
-  '/trump/tournaments/': typeof TrumpTournamentsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -314,26 +158,9 @@ export interface FileRouteTypes {
     | '/stats/$playerId'
     | '/teams/$teamId'
     | '/tournaments/$tournamentId'
-    | '/dominoes/'
-    | '/fifa/'
     | '/stats/'
     | '/teams/'
     | '/tournaments/'
-    | '/trump/'
-    | '/dominoes/matches/new'
-    | '/dominoes/tournaments/$tournamentId'
-    | '/fifa/matches/new'
-    | '/fifa/players/$playerId'
-    | '/trump/matches/new'
-    | '/trump/tournaments/$tournamentId'
-    | '/dominoes/matches/'
-    | '/dominoes/teams/'
-    | '/dominoes/tournaments/'
-    | '/fifa/matches/'
-    | '/fifa/players/'
-    | '/trump/matches/'
-    | '/trump/teams/'
-    | '/trump/tournaments/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -347,26 +174,9 @@ export interface FileRouteTypes {
     | '/stats/$playerId'
     | '/teams/$teamId'
     | '/tournaments/$tournamentId'
-    | '/dominoes'
-    | '/fifa'
     | '/stats'
     | '/teams'
     | '/tournaments'
-    | '/trump'
-    | '/dominoes/matches/new'
-    | '/dominoes/tournaments/$tournamentId'
-    | '/fifa/matches/new'
-    | '/fifa/players/$playerId'
-    | '/trump/matches/new'
-    | '/trump/tournaments/$tournamentId'
-    | '/dominoes/matches'
-    | '/dominoes/teams'
-    | '/dominoes/tournaments'
-    | '/fifa/matches'
-    | '/fifa/players'
-    | '/trump/matches'
-    | '/trump/teams'
-    | '/trump/tournaments'
   id:
     | '__root__'
     | '/'
@@ -380,26 +190,9 @@ export interface FileRouteTypes {
     | '/stats/$playerId'
     | '/teams/$teamId'
     | '/tournaments/$tournamentId'
-    | '/dominoes/'
-    | '/fifa/'
     | '/stats/'
     | '/teams/'
     | '/tournaments/'
-    | '/trump/'
-    | '/dominoes/matches/new'
-    | '/dominoes/tournaments/$tournamentId'
-    | '/fifa/matches/new'
-    | '/fifa/players/$playerId'
-    | '/trump/matches/new'
-    | '/trump/tournaments/$tournamentId'
-    | '/dominoes/matches/'
-    | '/dominoes/teams/'
-    | '/dominoes/tournaments/'
-    | '/fifa/matches/'
-    | '/fifa/players/'
-    | '/trump/matches/'
-    | '/trump/teams/'
-    | '/trump/tournaments/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -414,26 +207,9 @@ export interface RootRouteChildren {
   StatsPlayerIdRoute: typeof StatsPlayerIdRoute
   TeamsTeamIdRoute: typeof TeamsTeamIdRoute
   TournamentsTournamentIdRoute: typeof TournamentsTournamentIdRoute
-  DominoesIndexRoute: typeof DominoesIndexRoute
-  FifaIndexRoute: typeof FifaIndexRoute
   StatsIndexRoute: typeof StatsIndexRoute
   TeamsIndexRoute: typeof TeamsIndexRoute
   TournamentsIndexRoute: typeof TournamentsIndexRoute
-  TrumpIndexRoute: typeof TrumpIndexRoute
-  DominoesMatchesNewRoute: typeof DominoesMatchesNewRoute
-  DominoesTournamentsTournamentIdRoute: typeof DominoesTournamentsTournamentIdRoute
-  FifaMatchesNewRoute: typeof FifaMatchesNewRoute
-  FifaPlayersPlayerIdRoute: typeof FifaPlayersPlayerIdRoute
-  TrumpMatchesNewRoute: typeof TrumpMatchesNewRoute
-  TrumpTournamentsTournamentIdRoute: typeof TrumpTournamentsTournamentIdRoute
-  DominoesMatchesIndexRoute: typeof DominoesMatchesIndexRoute
-  DominoesTeamsIndexRoute: typeof DominoesTeamsIndexRoute
-  DominoesTournamentsIndexRoute: typeof DominoesTournamentsIndexRoute
-  FifaMatchesIndexRoute: typeof FifaMatchesIndexRoute
-  FifaPlayersIndexRoute: typeof FifaPlayersIndexRoute
-  TrumpMatchesIndexRoute: typeof TrumpMatchesIndexRoute
-  TrumpTeamsIndexRoute: typeof TrumpTeamsIndexRoute
-  TrumpTournamentsIndexRoute: typeof TrumpTournamentsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -480,13 +256,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/trump/': {
-      id: '/trump/'
-      path: '/trump'
-      fullPath: '/trump/'
-      preLoaderRoute: typeof TrumpIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/tournaments/': {
       id: '/tournaments/'
       path: '/tournaments'
@@ -506,20 +275,6 @@ declare module '@tanstack/react-router' {
       path: '/stats'
       fullPath: '/stats/'
       preLoaderRoute: typeof StatsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fifa/': {
-      id: '/fifa/'
-      path: '/fifa'
-      fullPath: '/fifa/'
-      preLoaderRoute: typeof FifaIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dominoes/': {
-      id: '/dominoes/'
-      path: '/dominoes'
-      fullPath: '/dominoes/'
-      preLoaderRoute: typeof DominoesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tournaments/$tournamentId': {
@@ -557,104 +312,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChartsMatchIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/trump/tournaments/': {
-      id: '/trump/tournaments/'
-      path: '/trump/tournaments'
-      fullPath: '/trump/tournaments/'
-      preLoaderRoute: typeof TrumpTournamentsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/trump/teams/': {
-      id: '/trump/teams/'
-      path: '/trump/teams'
-      fullPath: '/trump/teams/'
-      preLoaderRoute: typeof TrumpTeamsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/trump/matches/': {
-      id: '/trump/matches/'
-      path: '/trump/matches'
-      fullPath: '/trump/matches/'
-      preLoaderRoute: typeof TrumpMatchesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fifa/players/': {
-      id: '/fifa/players/'
-      path: '/fifa/players'
-      fullPath: '/fifa/players/'
-      preLoaderRoute: typeof FifaPlayersIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fifa/matches/': {
-      id: '/fifa/matches/'
-      path: '/fifa/matches'
-      fullPath: '/fifa/matches/'
-      preLoaderRoute: typeof FifaMatchesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dominoes/tournaments/': {
-      id: '/dominoes/tournaments/'
-      path: '/dominoes/tournaments'
-      fullPath: '/dominoes/tournaments/'
-      preLoaderRoute: typeof DominoesTournamentsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dominoes/teams/': {
-      id: '/dominoes/teams/'
-      path: '/dominoes/teams'
-      fullPath: '/dominoes/teams/'
-      preLoaderRoute: typeof DominoesTeamsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dominoes/matches/': {
-      id: '/dominoes/matches/'
-      path: '/dominoes/matches'
-      fullPath: '/dominoes/matches/'
-      preLoaderRoute: typeof DominoesMatchesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/trump/tournaments/$tournamentId': {
-      id: '/trump/tournaments/$tournamentId'
-      path: '/trump/tournaments/$tournamentId'
-      fullPath: '/trump/tournaments/$tournamentId'
-      preLoaderRoute: typeof TrumpTournamentsTournamentIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/trump/matches/new': {
-      id: '/trump/matches/new'
-      path: '/trump/matches/new'
-      fullPath: '/trump/matches/new'
-      preLoaderRoute: typeof TrumpMatchesNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fifa/players/$playerId': {
-      id: '/fifa/players/$playerId'
-      path: '/fifa/players/$playerId'
-      fullPath: '/fifa/players/$playerId'
-      preLoaderRoute: typeof FifaPlayersPlayerIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fifa/matches/new': {
-      id: '/fifa/matches/new'
-      path: '/fifa/matches/new'
-      fullPath: '/fifa/matches/new'
-      preLoaderRoute: typeof FifaMatchesNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dominoes/tournaments/$tournamentId': {
-      id: '/dominoes/tournaments/$tournamentId'
-      path: '/dominoes/tournaments/$tournamentId'
-      fullPath: '/dominoes/tournaments/$tournamentId'
-      preLoaderRoute: typeof DominoesTournamentsTournamentIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dominoes/matches/new': {
-      id: '/dominoes/matches/new'
-      path: '/dominoes/matches/new'
-      fullPath: '/dominoes/matches/new'
-      preLoaderRoute: typeof DominoesMatchesNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -670,26 +327,9 @@ const rootRouteChildren: RootRouteChildren = {
   StatsPlayerIdRoute: StatsPlayerIdRoute,
   TeamsTeamIdRoute: TeamsTeamIdRoute,
   TournamentsTournamentIdRoute: TournamentsTournamentIdRoute,
-  DominoesIndexRoute: DominoesIndexRoute,
-  FifaIndexRoute: FifaIndexRoute,
   StatsIndexRoute: StatsIndexRoute,
   TeamsIndexRoute: TeamsIndexRoute,
   TournamentsIndexRoute: TournamentsIndexRoute,
-  TrumpIndexRoute: TrumpIndexRoute,
-  DominoesMatchesNewRoute: DominoesMatchesNewRoute,
-  DominoesTournamentsTournamentIdRoute: DominoesTournamentsTournamentIdRoute,
-  FifaMatchesNewRoute: FifaMatchesNewRoute,
-  FifaPlayersPlayerIdRoute: FifaPlayersPlayerIdRoute,
-  TrumpMatchesNewRoute: TrumpMatchesNewRoute,
-  TrumpTournamentsTournamentIdRoute: TrumpTournamentsTournamentIdRoute,
-  DominoesMatchesIndexRoute: DominoesMatchesIndexRoute,
-  DominoesTeamsIndexRoute: DominoesTeamsIndexRoute,
-  DominoesTournamentsIndexRoute: DominoesTournamentsIndexRoute,
-  FifaMatchesIndexRoute: FifaMatchesIndexRoute,
-  FifaPlayersIndexRoute: FifaPlayersIndexRoute,
-  TrumpMatchesIndexRoute: TrumpMatchesIndexRoute,
-  TrumpTeamsIndexRoute: TrumpTeamsIndexRoute,
-  TrumpTournamentsIndexRoute: TrumpTournamentsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

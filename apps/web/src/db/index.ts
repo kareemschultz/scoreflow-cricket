@@ -9,23 +9,9 @@ import type {
   AppSettings,
   CricketFormat,
 } from "@/types/cricket"
-import type { FifaPlayer, FifaMatch } from "@/types/fifa"
-import type {
-  DominoPlayer,
-  DominoTeam,
-  DominoMatch,
-  DominoTournament,
-} from "@/types/dominoes"
-import type {
-  TrumpPlayer,
-  TrumpTeam,
-  TrumpMatch,
-  TrumpTournament,
-} from "@/types/trump"
-
 // ─── Database ────────────────────────────────────────────────────────────────
 
-class ScoreFlowDB extends Dexie {
+class ScoreFlowCricketDB extends Dexie {
   teams!: EntityTable<Team, "id">
   players!: EntityTable<Player, "id">
   matches!: EntityTable<Match, "id">
@@ -33,19 +19,9 @@ class ScoreFlowDB extends Dexie {
   battingStats!: EntityTable<PlayerBattingStats & { id: string }, "id">
   bowlingStats!: EntityTable<PlayerBowlingStats & { id: string }, "id">
   settings!: EntityTable<AppSettings & { id: string }, "id">
-  fifaPlayers!: EntityTable<FifaPlayer, "id">
-  fifaMatches!: EntityTable<FifaMatch, "id">
-  dominoPlayers!: EntityTable<DominoPlayer, "id">
-  dominoTeams!: EntityTable<DominoTeam, "id">
-  dominoMatches!: EntityTable<DominoMatch, "id">
-  dominoTournaments!: EntityTable<DominoTournament, "id">
-  trumpPlayers!: EntityTable<TrumpPlayer, "id">
-  trumpTeams!: EntityTable<TrumpTeam, "id">
-  trumpMatches!: EntityTable<TrumpMatch, "id">
-  trumpTournaments!: EntityTable<TrumpTournament, "id">
 
   constructor() {
-    super("CricketBookDB")
+    super("ScoreFlowCricketDB")
 
     this.version(1).stores({
       teams: "id, name, createdAt",
@@ -56,31 +32,10 @@ class ScoreFlowDB extends Dexie {
       bowlingStats: "id, playerId, format, [playerId+format]",
       settings: "id",
     })
-
-    this.version(2).stores({
-      fifaPlayers: "id, name, createdAt",
-      fifaMatches: "id, date, player1Id, player2Id",
-    })
-
-    this.version(3).stores({
-      dominoPlayers: "id, name, createdAt",
-      dominoTeams: "id, name, player1Id, player2Id, createdAt",
-      dominoMatches: "id, date, team1Id, team2Id, status",
-      trumpPlayers: "id, name, createdAt",
-      trumpTeams: "id, name, player1Id, player2Id, createdAt",
-      trumpMatches: "id, date, team1Id, team2Id, status",
-    })
-
-    this.version(4).stores({
-      dominoMatches: "id, date, team1Id, team2Id, status, tournamentId, tournamentFixtureId",
-      dominoTournaments: "id, status, createdAt",
-      trumpMatches: "id, date, team1Id, team2Id, status, tournamentId, tournamentFixtureId",
-      trumpTournaments: "id, status, createdAt",
-    })
   }
 }
 
-export const db = new ScoreFlowDB()
+export const db = new ScoreFlowCricketDB()
 
 // ─── Settings helpers ─────────────────────────────────────────────────────────
 

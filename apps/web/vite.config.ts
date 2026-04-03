@@ -6,7 +6,7 @@ import { TanStackRouterVite } from "@tanstack/router-plugin/vite"
 import { VitePWA } from "vite-plugin-pwa"
 
 export default defineConfig({
-  base: "/scoreflow/",
+  base: "/scoreflow-cricket/",
   build: {
     rollupOptions: {
       output: {
@@ -56,15 +56,16 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "icons/*.png"],
       manifest: {
-        name: "ScoreFlow",
+        name: "ScoreFlow Cricket",
         short_name: "ScoreFlow",
-        description: "Mobile-first live scoring & statistics app",
+        description: "Mobile-first cricket live scoring & statistics app",
         theme_color: "#3b5bdb",
         background_color: "#1a1a2e",
         display: "standalone",
         orientation: "portrait",
-        start_url: "/scoreflow/",
-        scope: "/scoreflow/",
+        start_url: "/scoreflow-cricket/",
+        id: "/scoreflow-cricket/",
+        scope: "/scoreflow-cricket/",
         icons: [
           { src: "icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
           { src: "icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
